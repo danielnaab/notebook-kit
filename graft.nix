@@ -56,11 +56,62 @@ let
       '';
       meta.description = lib.elemAt spec 1;
     }) specs;
+  # The pre-commit hook command (kit 1.2's commands.<name>.hook): markdownlint on the staged Markdown, then check-kb,
+  # each by its store path (no just, no nix develop), so one commit is one sandboxed start under graft's pot.
+  preCommit = pkgs.writeShellApplication {
+    name = "nb-pre-commit";
+    runtimeInputs = [ pkgs.git pkgs.gnused pkgs.markdownlint-cli2 scripts.check-kb ];
+    text = ''
+      cd "$(git rev-parse --show-toplevel)"
+      # staged Markdown, leaving out the scions directory (the folder whose README.md carries graft's marker)
+      IFS='
+      '
+      # shellcheck disable=SC2046
+      set -- $(git grep --cached -l -F '<!-- managed by graft: https://github.com/danielnaab/graft -->' \
+        -- README.md '*/README.md' 2>/dev/null | sed -n 's|README\.md$||; s|/$||; /^$/d; s|^|:!|p' || true)
+      # shellcheck disable=SC2046
+      set -- $(git diff --cached --name-only --diff-filter=ACM -- '*.md' "$@")
+      [ "$#" -gt 0 ] || exit 0
+      markdownlint-cli2 --no-globs "$@"
+      check-kb
+    '';
+    meta.description = "The pre-commit check: markdownlint on staged Markdown, then check-kb";
+  };
+
+  # Kit 1.2 (graft v2.18.0 or later in the consumer, pot v2.17.0 or later in its root): each tool a command that pot
+  # runs under its own policy, through the wrapper graft builds of the same name. None requests anything (no grant).
+  # The checks read the workspace; the others write it.
+  readOnly = [ "check-kb" "check-tasks" "check-templates" "check-obsidian" ];
+  kit = {
+    version = "1.2";
+    commands = lib.mapAttrs (name: drv: {
+      program = lib.getExe drv;
+      access = if lib.elem name readOnly then "read" else "write";
+      description = drv.meta.description;
+    }) scripts // {
+      nb-pre-commit = { program = lib.getExe preCommit; access = "read"; hook = "pre-commit";
+        description = preCommit.meta.description; };
+    };
+    # just recipes graft generates into the consumer's kits.just (graft v2.18.0); tools/kit.just stays for older graft
+    recipes = {
+      check-kb = { run = "check-kb"; description = "Check links, lifecycle status, and Sources with knowledge-base-kit's checker"; };
+      check-tasks = { run = "check-tasks"; description = "Validate current task records and their index"; };
+      check-templates = { run = "check-templates"; description = "Report how note templates differ from the kit's canonical copies (--strict: fail on drift)"; };
+      check-obsidian = { run = "check-obsidian"; description = "Report how the vault's shared Obsidian settings differ from the kit's (--strict: fail on drift)"; };
+      index = { run = "nb-index"; description = "Regenerate the vault's index.md listings from note frontmatter (--check: report stale ones)"; };
+      move = { run = "nb-move"; description = "Move a note or folder and rewrite the links to and from it (paths from the repository root; --dry-run)"; };
+      upgrade-obsidian = { run = "upgrade-obsidian"; description = "Merge the kit's Obsidian settings into the vault, keeping local changes (quit Obsidian first)"; };
+      convert = { run = "nb-convert"; description = "Convert a v0.1 workspace to the v0.2 vault layout (--dry-run)"; };
+    };
+  };
 in
 {
   requires.knowledge-base-kit = "https://github.com/danielnaab/knowledge-base-kit";
 
-  tools = scripts // { inherit (pkgs) just markdownlint-cli2; };
+  tools = scripts // { inherit (pkgs) just markdownlint-cli2; nb-pre-commit = preCommit; };
+
+  # pot's kit (graft v2.15.0 or later reads it; kit 1.2 needs graft v2.17.0 or later in the consumer)
+  inherit kit;
 
   apps = lib.mapAttrs (_: drv: {
     type = "app";

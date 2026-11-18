@@ -1,5 +1,34 @@
 # Changelog
 
+## v2.1.0 - unreleased
+
+For graft v2.18.0's wrapped kit commands: the kit declares pot's kit 1.2, so a workspace on graft v2.18.0 or later
+runs each tool under its own sandbox policy.
+
+### Added
+
+- **`kit` in `graft.nix` (kit 1.2):** a command for each tool (`check-kb`, `check-tasks`, `check-templates`,
+  `check-obsidian` read the workspace; `nb-index`, `nb-move`, `nb-convert`, `upgrade-obsidian` write it), and
+  `nb-pre-commit`, the pre-commit hook command (`hook = "pre-commit"`): markdownlint on the staged Markdown, then
+  `check-kb`, each by its store path. None requests anything, so a workspace grants nothing for them.
+- **`recipes`:** graft v2.18.0 generates `<scions>/kits.just` from them (`check-kb`, `check-tasks`,
+  `check-templates`, `check-obsidian`, `index`, `move`, `upgrade-obsidian`, `convert`).
+- **`nb-pre-commit`** in the tools.
+
+### Upgrading
+
+A workspace on graft older than v2.17.0 can't read kit 1.2: take graft v2.18.0 first (`nix flake update graft`), and
+the root that runs pot on v2.17.0 or later. Then:
+
+1. `graft upgrade notebook-kit@v2.1.0`, then `graft sync`, which writes `<scions>/kits.just` when your justfile
+   imports it.
+2. In the justfile, import `<scions>/kits.just` instead of `tools/kit.just`'s single-tool recipes, or keep
+   `tools/kit.just` for its aggregate recipes (`check`, `changelog`, `migrate`, `sync`, `upgrade`) and remove any
+   recipe of your own with a name `kits.just` uses (`graft check` names a clash). Define `tools` as the tools
+   package's root (`kits.just` runs `{{tools}}/bin/<command>`).
+3. Replace `.githooks/pre-commit`'s body with an exec of the wrapper: `exec "<tools>/bin/nb-pre-commit" "$@"`.
+4. Done when `graft check` passes, `just check-kb` runs, and a commit runs `nb-pre-commit`.
+
 ## v2.0.1 - 2026-11-14
 
 ### Fixed
