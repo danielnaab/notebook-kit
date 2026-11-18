@@ -22,10 +22,11 @@ the root that runs pot on v2.17.0 or later. Then:
 
 1. `graft upgrade notebook-kit@v2.1.0`, then `graft sync`, which writes `<scions>/kits.just` when your justfile
    imports it.
-2. In the justfile, import `<scions>/kits.just` instead of `tools/kit.just`'s single-tool recipes, or keep
-   `tools/kit.just` for its aggregate recipes (`check`, `changelog`, `migrate`, `sync`, `upgrade`) and remove any
-   recipe of your own with a name `kits.just` uses (`graft check` names a clash). Define `tools` as the tools
-   package's root (`kits.just` runs `{{tools}}/bin/<command>`).
+2. In the justfile, import `<scions>/kits.just` after `tools/kit.just` (just keeps the first of two recipes with
+   one name, so `kit.just`'s aggregate `check`, `upgrade` and the rest stay; both run the same tools through
+   `kit_run`), and remove any recipe of your own with a name `kits.just` uses (`graft check` names a clash). Define
+   `tools` as the tools package's root (`kits.just` runs `{{tools}}/bin/<command>`) and point `kit_run` at
+   `{{tools}}/bin/{}`, the wrapped tools.
 3. Replace `.githooks/pre-commit`'s body with an exec of the wrapper: `exec "<tools>/bin/nb-pre-commit" "$@"`.
 4. Done when `graft check` passes, `just check-kb` runs, and a commit runs `nb-pre-commit`.
 
