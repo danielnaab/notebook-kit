@@ -1,6 +1,6 @@
 # Changelog
 
-## v2.1.0 - unreleased
+## v2.1.0 - 2026-11-18
 
 For graft v2.18.0's wrapped kit commands: the kit declares pot's kit 1.2, so a workspace on graft v2.18.0 or later
 runs each tool under its own sandbox policy.
@@ -14,6 +14,11 @@ runs each tool under its own sandbox policy.
 - **`recipes`:** graft v2.18.0 generates `<scions>/kits.just` from them (`check-kb`, `check-tasks`,
   `check-templates`, `check-obsidian`, `index`, `move`, `upgrade-obsidian`, `convert`).
 - **`nb-pre-commit`** in the tools.
+
+### Changed
+
+- **graft v2.18.0:** the kit's own flake, the seed's `flake.nix` and the adoption guide pin graft v2.18.0 (was
+  v2.13.1), so a new workspace runs the kit's tools through pot's wrappers.
 
 ### Upgrading
 

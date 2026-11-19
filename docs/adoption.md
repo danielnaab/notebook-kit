@@ -9,7 +9,9 @@ scion, `seed/` files it copies once and then owns, and a local overlay of its ow
 
 ## Start a workspace
 
-This needs [graft](https://github.com/danielnaab/graft) v2.13.1 or later, Nix 2.27 or later, and git.
+This needs [graft](https://github.com/danielnaab/graft) v2.18.0 (which runs the kit's tools through pot's wrappers),
+Nix 2.27 or later, and git. graft v2.13.1 to v2.14.x also work, without wrappers; v2.15.0 to v2.16.x refuse the
+kit's `kit` (pot's kit 1.2, from v2.1.0), and v2.17.x reads it with no wrappers: take graft v2.18.0.
 
 1. Create the repository. The seed includes an `.envrc` for direnv (`use flake`); the dev shell has
    [just](https://just.systems) and the kit's tools. Without direnv, run `nix develop`, or put `just` on `PATH`
@@ -32,8 +34,8 @@ This needs [graft](https://github.com/danielnaab/graft) v2.13.1 or later, Nix 2.
 
    ```sh
    git init -b main && git add -A
-   nix run github:danielnaab/graft/v2.13.1 -- add --scions .scions https://github.com/danielnaab/knowledge-base-kit@v2.2.0
-   nix run github:danielnaab/graft/v2.13.1 -- add https://github.com/danielnaab/notebook-kit@v2.0.1
+   nix run github:danielnaab/graft/v2.18.0 -- add --scions .scions https://github.com/danielnaab/knowledge-base-kit@v2.2.0
+   nix run github:danielnaab/graft/v2.18.0 -- add https://github.com/danielnaab/notebook-kit@v2.1.0
    git commit -m "Seed the workspace"   # Nix reads the scions at the commits the repository records
    nix flake lock
    cp .scions/notebook-kit/templates/*.md notebook/templates/
@@ -160,7 +162,7 @@ Evaluating a flake at a Git repository's top copies every tracked file into the 
 the machine can read: every `nix run .#…`, `nix develop`, `nix flake check`, and direnv's `use flake`. When the
 notes must not land there, move the workspace's one flake into a subdirectory and run it as a `path:` flake,
 which copies only that directory. The scions live under it
-([graft: a flake in a subdirectory](https://github.com/danielnaab/graft/blob/v2.13.1/docs/guides/flake-in-a-subdirectory.md)).
+([graft: a flake in a subdirectory](https://github.com/danielnaab/graft/blob/v2.18.0/docs/guides/flake-in-a-subdirectory.md)).
 
 ```text
 nix/workspace/flake.nix    the seed's flake.nix, moved, without `inputs.self.submodules`
@@ -174,11 +176,11 @@ justfile                   names the path: flake and the scions under it
 In `nix/workspace/flake.nix`:
 
 ```nix
-  inputs.graft.url = "github:danielnaab/graft/v2.13.1";
+  inputs.graft.url = "github:danielnaab/graft/v2.18.0";
   outputs = inputs: inputs.graft.lib.mkFlake { inherit inputs; dir = ".scions"; };
 ```
 
-Graft the scions there: `nix run github:danielnaab/graft/v2.13.1 -- add --scions nix/workspace/.scions URL@TAG`.
+Graft the scions there: `nix run github:danielnaab/graft/v2.18.0 -- add --scions nix/workspace/.scions URL@TAG`.
 In the `justfile`:
 
 ```just
@@ -263,8 +265,8 @@ While the kit is `0.x`, any release may change seeded files, so every release ca
 
 ## Sources
 
-- [graft: a flake in a subdirectory](https://github.com/danielnaab/graft/blob/v2.13.1/docs/guides/flake-in-a-subdirectory.md)
-- [graft README](https://github.com/danielnaab/graft/blob/v2.13.1/README.md)
+- [graft: a flake in a subdirectory](https://github.com/danielnaab/graft/blob/v2.18.0/docs/guides/flake-in-a-subdirectory.md)
+- [graft README](https://github.com/danielnaab/graft/blob/v2.18.0/README.md)
 - [knowledge-base-kit dependency playbook](https://github.com/danielnaab/knowledge-base-kit/blob/v2.0.0/docs/playbooks/manage-kb-dependencies.md)
 - [Seed files](../seed/common/)
 - [just manual: imports, settings, and attributes](https://just.systems/man/en/)
