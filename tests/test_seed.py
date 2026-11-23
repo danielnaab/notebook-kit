@@ -80,8 +80,8 @@ class SeedTest(unittest.TestCase):
         newest = re.search(r"^## (v[0-9.]+)", (KIT / "CHANGELOG.md").read_text(), re.M).group(1)
         self.assertIn(f"notebook-kit@{newest}", (KIT / "docs/adoption.md").read_text())
 
-    def test_seed_pins_the_graft_the_kit_uses(self):
-        pin = re.search(r"danielnaab/graft/v[0-9.]+", (KIT / "flake.nix").read_text()).group(0)
+    def test_seed_pins_the_tuteur_the_kit_uses(self):
+        pin = re.search(r"danielnaab/tuteur/v[0-9.]+", (KIT / "flake.nix").read_text()).group(0)
         self.assertIn(pin, (KIT / "seed/common/flake.nix").read_text())
 
     def test_flake_names_no_provider(self):

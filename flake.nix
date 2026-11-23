@@ -1,10 +1,10 @@
 {
   description = "Conventions, tools, and a starter seed for Markdown work-memory workspaces";
 
-  # .scions/knowledge-base-kit is a git submodule (graft v2.13.0)
+  # .scions/knowledge-base-kit is a git submodule (tuteur, the input still named graft)
   inputs.self.submodules = true;
   inputs = {
-    graft.url = "github:danielnaab/graft/v2.18.0";
+    graft.url = "github:danielnaab/tuteur/v0.1.0";
     nixpkgs.follows = "graft/nixpkgs";
   };
 

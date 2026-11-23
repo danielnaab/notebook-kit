@@ -1,5 +1,36 @@
 # Changelog
 
+## v2.2.0 - 2026-11-22
+
+For [tuteur](https://github.com/danielnaab/tuteur) 0.1.0, graft's successor. The kit works under both: a workspace
+on graft v2.18.0 to v2.22.0 takes this release as it is.
+
+### Changed
+
+- **tuteur 0.1.0:** the kit's own flake and the seed's `flake.nix` pin `github:danielnaab/tuteur/v0.1.0` (was
+  graft v2.18.0). The input keeps its name, `graft`, which every tuteur 0.x reads. The seed's text, the README and
+  the adoption guide name tuteur; the adoption guide adds the kit with `tuteur add` and links tuteur's
+  [move from graft](https://github.com/danielnaab/tuteur/blob/v0.1.0/docs/guides/move-from-graft.md) guide.
+- **knowledge-base-kit v2.2.2** in the kit's own scions and the adoption guide (it skips a folder carrying
+  tuteur's marker).
+
+### Fixed
+
+- **The scions directory is found by tuteur's marker too:** `tuteur sync` rewrites the scions README with
+  `<!-- managed by tuteur: … -->`, and the pre-commit hook, `nb-pre-commit` and `check-obsidian`'s scions lookup
+  (`kit_settings.scions_dirs`) knew only graft's. After a move to tuteur, they linted and checked the scions'
+  Markdown. Both markers are read.
+
+### Upgrading
+
+On graft v2.x: `graft upgrade notebook-kit@v2.2.0`. Nothing else changes. To move the workspace to tuteur, follow
+tuteur's [move from graft](https://github.com/danielnaab/tuteur/blob/v0.1.0/docs/guides/move-from-graft.md) guide
+after taking this release, so the hook already reads tuteur's marker when `sync` writes it.
+
+1. Optional, seeded files: in `AGENTS.md`, `nix run .#graft -- try` becomes `nix run .#tuteur -- try` once the
+   workspace is on tuteur (graft's name works through tuteur 0.1.x).
+2. Done when `just check` passes.
+
 ## v2.1.0 - 2026-11-18
 
 For graft v2.18.0's wrapped kit commands: the kit declares pot's kit 1.2, so a workspace on graft v2.18.0 or later

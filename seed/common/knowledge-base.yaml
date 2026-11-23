@@ -38,7 +38,7 @@ sources:
     - path: knowledge-base.yaml
       note: "Layout and behavioral write rules, not a technical enforcement mechanism."
     - path: flake.nix
-      note: "The flake: graft wires the scions' tools; graft's own pin is in flake.lock."
+      note: "The flake: tuteur wires the scions' tools; tuteur's own pin (input graft) is in flake.lock."
     - path: notebook-kit.yaml
       note: "Settings for notebook-kit's tools: task records, Obsidian deviations."
   interpretation:

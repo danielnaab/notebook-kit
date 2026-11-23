@@ -105,6 +105,13 @@ class KitScionTest(unittest.TestCase):
     def test_scions_directory_is_found_by_graft_marker(self):
         self.assertEqual([self.scions], kit_settings.scions_dirs(self.root))
 
+    def test_scions_directory_is_found_by_tuteur_marker(self):
+        # tuteur sync (0.1.0) rewrites the README with tuteur's marker; the folder is still the scions directory
+        (self.root / self.scions / "README.md").write_text(
+            "<!-- managed by tuteur: https://github.com/danielnaab/tuteur -->\n# Patterns\n")
+        git(self.root, "add", "-A")
+        self.assertEqual([self.scions], kit_settings.scions_dirs(self.root))
+
     def test_base_seed_reads_the_old_release_from_the_submodule(self):
         # `graft upgrade` moves the submodule and stages it; HEAD still records v1 until the commit
         git(self.root / self.scions / "notebook-kit", "checkout", "-q", "--detach", self.v2)

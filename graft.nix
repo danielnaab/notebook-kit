@@ -63,11 +63,11 @@ let
     runtimeInputs = [ pkgs.git pkgs.gnused pkgs.markdownlint-cli2 scripts.check-kb ];
     text = ''
       cd "$(git rev-parse --show-toplevel)"
-      # staged Markdown, leaving out the scions directory (the folder whose README.md carries graft's marker)
+      # staged Markdown, leaving out the scions directory (the folder whose README.md carries graft's or tuteur's marker)
       IFS='
       '
       # shellcheck disable=SC2046
-      set -- $(git grep --cached -l -F '<!-- managed by graft: https://github.com/danielnaab/graft -->' \
+      set -- $(git grep --cached -l -F -e '<!-- managed by graft: https://github.com/danielnaab/graft -->' -e '<!-- managed by tuteur: https://github.com/danielnaab/tuteur -->' \
         -- README.md '*/README.md' 2>/dev/null | sed -n 's|README\.md$||; s|/$||; /^$/d; s|^|:!|p' || true)
       # shellcheck disable=SC2046
       set -- $(git diff --cached --name-only --diff-filter=ACM -- '*.md' "$@")

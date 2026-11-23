@@ -5,7 +5,7 @@ notes that people browse in Obsidian and agents maintain. The notes folder is th
 [OKF](https://github.com/GoogleCloudPlatform/knowledge-catalog/blob/main/okf/SPEC.md) v0.2 bundle. It extracts what proved useful in practice and is
 meant to be shared by several workspaces that evolve together.
 
-A workspace pins this repository as a [graft](https://github.com/danielnaab/graft) scion, reads most of it in
+A workspace pins this repository as a [tuteur](https://github.com/danielnaab/tuteur) scion, reads most of it in
 place, and copies a small `seed/` once.
 
 ## What is here
@@ -16,14 +16,14 @@ place, and copies a small `seed/` once.
 | [templates/](templates/) | Canonical daily, session, wiki, and task-record note templates. |
 | [skills/](skills/) | Generic agent skills `notebook-start` and `notebook-wrap`. |
 | [tools/](tools/) | `check-tasks`, `check-kb`, `check-templates`, `check-obsidian`, `upgrade-obsidian`, `index`, `move`, `convert` (the tools `nb-index`, `nb-move`, `nb-convert`), a pre-commit hook, and the `just` menu `kit.just`. |
-| [graft.nix](graft.nix) | What a workspace that grafts the kit gets in its flake ([graft](https://github.com/danielnaab/graft) v2.13.0): the tools and an app for each, the pinned Obsidian plugins, the task check. Its settings are in `notebook-kit.yaml`. |
+| [graft.nix](graft.nix) | What a workspace that pins the kit gets in its flake ([tuteur](https://github.com/danielnaab/tuteur) v0.1.0, or graft v2.13.0 and later): the tools and an app for each, the pinned Obsidian plugins, the task check. Its settings are in `notebook-kit.yaml`. |
 | [seed/](seed/common/) | Files a workspace copies once and then owns. |
 | [LICENSE](LICENSE) | CC0 1.0 Universal. |
 | [tests/](tests/) | Tool tests and a test that builds a workspace from the seed and runs every check. |
 
 ## Use it
 
-See the [adoption guide](docs/adoption.md): copy the seed, fill the placeholders, write the boundaries, graft the
+See the [adoption guide](docs/adoption.md): copy the seed, fill the placeholders, write the boundaries, add the
 kit, and check. In a workspace, `just` lists every operation, grouped: checks, note moves and indexes, and
 dependency upgrades ([run operations with just](docs/adoption.md#run-operations-with-just)). Upgrade with
 `just upgrade`, read the changelog's **Upgrading** steps, and let `just migrate` brief an agent.
@@ -53,5 +53,5 @@ The license file is exported with the scion, so every workspace that pins the ki
 
 ## Sources
 
-- [Graft](https://github.com/danielnaab/graft)
+- [tuteur](https://github.com/danielnaab/tuteur)
 - [knowledge-base-kit](https://github.com/danielnaab/knowledge-base-kit): the conventions and the checker

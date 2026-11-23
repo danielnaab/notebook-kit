@@ -21,8 +21,11 @@ import yaml
 
 SETTINGS_FILE = "notebook-kit.yaml"
 KEYS = ("tasks", "obsidian")
-# The first line of graft's scions README (graft's lib/common.sh MARKER).
-GRAFT_MARKER = "<!-- managed by graft: https://github.com/danielnaab/graft -->"
+# The first line of the scions README that graft writes (graft's lib/common.sh MARKER), and tuteur, its successor.
+GRAFT_MARKERS = (
+    "<!-- managed by graft: https://github.com/danielnaab/graft -->",
+    "<!-- managed by tuteur: https://github.com/danielnaab/tuteur -->",
+)
 
 
 def load(root: Path) -> dict:
@@ -53,7 +56,8 @@ def scions_dirs(root: Path) -> list[str]:
 
     git grep does not descend into submodules, so a scion's own scions directory is never one of them.
     """
-    proc = subprocess.run(["git", "-C", str(root), "grep", "--cached", "-l", "-F", GRAFT_MARKER, "--",
+    proc = subprocess.run(["git", "-C", str(root), "grep", "--cached", "-l", "-F",
+                           *(arg for marker in GRAFT_MARKERS for arg in ("-e", marker)), "--",
                            "README.md", "*/README.md"], capture_output=True, text=True)
     if proc.returncode != 0:
         return []
