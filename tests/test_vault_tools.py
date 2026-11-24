@@ -274,6 +274,30 @@ class NamesTest(VaultTestCase):
         self.assertIn("* [Pat Lee](Pat%20Lee.md)", self.read("notebook/wiki/index.md"))
         self.assertIn("* [Q3: plan?](Q3%20-%20plan.md)", self.read("notebook/wiki/index.md"))
 
+    def test_unwritten_links_named_by_slug_are_repointed(self):
+        self.write("notebook/wiki/hub.md", "---\ntype: Topic\n---\n\n[10x BEARS](10x-bears.md#plan), [Ren\u00e9e M](people/renee-m.md),\n"
+                   "[a nickname](sam-ortiz.md), [Q\\[3\\]](q-3.md), [Kept Name](kept-name.md)\n")
+        self.write("notebook/records/daily/2026-11/2026-11-07.md", "---\ntype: Daily Note\n---\n\n[10x BEARS](../../../wiki/10x-bears.md)\n")
+        report = self.tool("names.py")
+        self.assertIn("notebook/wiki/hub.md: unwritten note linked by slug: 10x-bears.md#plan -> 10x%20BEARS.md#plan",
+                      report.stdout)
+        self.assertIn("5 unwritten links to repoint", report.stdout)
+        self.tool("names.py", "--fix")
+        hub = self.read("notebook/wiki/hub.md")
+        self.assertIn("[10x BEARS](10x%20BEARS.md#plan)", hub)
+        self.assertIn("(people/Ren%C3%A9e%20M.md)", hub)
+        self.assertIn("[a nickname](sam-ortiz.md)", hub, "text that isn't the slugged name is left alone")
+        self.assertIn("[Q\\[3\\]](Q%283%29.md)", hub)
+        self.assertIn("[Kept Name](Kept%20Name.md)", hub, "a slug for a note that now exists is repointed to it")
+        self.assertIn("[10x BEARS](../../../wiki/10x%20BEARS.md)", self.read("notebook/records/daily/2026-11/2026-11-07.md"))
+        only_wiki = self.tool("names.py", "notebook/wiki/hub.md")
+        self.assertIn("0 unwritten links", only_wiki.stdout)
+
+    def test_unwritten_links_outside_the_scope_stay(self):
+        self.write("notebook/wiki/hub.md", "---\ntype: Topic\n---\n\n[Ren M](people/ren-m.md)\n")
+        self.tool("names.py", "--fix", "notebook/wiki/hub.md")
+        self.assertIn("(people/ren-m.md)", self.read("notebook/wiki/hub.md"))
+
     def test_rename_only_keeps_the_copies(self):
         proc = self.tool("names.py", "--fix", "--rename-only")
         self.assertIn("2 notes renamed", proc.stdout)

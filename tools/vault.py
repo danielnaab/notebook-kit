@@ -112,6 +112,7 @@ class Link:
     start: int  # offsets of the destination (inside the parentheses) in the file text
     end: int
     destination: str  # as written, angle brackets included
+    text: str = ""  # an inline link's text, without its brackets; empty for an image or a reference definition
 
 
 def masked(text: str) -> str:
@@ -146,7 +147,9 @@ def links(text: str) -> list[Link]:
 
     def scan(start: int, end: int) -> None:
         for match in LINK.finditer(hidden, start, end):
-            found.append(Link(match.start(2), match.end(2), text[match.start(2):match.end(2)]))
+            label = text[match.start(1):match.end(1)]
+            found.append(Link(match.start(2), match.end(2), text[match.start(2):match.end(2)],
+                              "" if label.startswith("!") else label[1:-1]))
             scan(match.start(1) + 1, match.end(1) - 1)  # [![image](i.png)](page.md)
 
     scan(0, len(hidden))

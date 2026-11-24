@@ -12,9 +12,12 @@ renamed in Obsidian leaves its `title` and `# heading` behind. A wiki page is no
 - **`just names`** (the tool `nb-names`): reports named notes not named by their `title`, or repeating the name in
   `title` or a first `#` heading; `--fix` renames each to its title (the nearest filename when the title holds
   characters a filename can't: `Q3: plan?` becomes `Q3 - plan.md`, keeping `title`), rewriting every link to them
-  in one pass, and drops the copies. It checks the bundle's `wiki/` unless given paths; a note whose new name is
+  in one pass, and drops the copies. A link to a note not written yet whose filename is its text slugged
+  (`[Pat Lee](pat-lee.md)`, as a migration from wikilinks writes them) is pointed at `Pat%20Lee.md`, so a click
+  in Obsidian creates a title-named note. It checks the bundle's `wiki/` unless given paths; a note whose new name is
   taken is reported and left alone; `--rename-only` renames and keeps the copies, for a commit of pure renames;
   `--strict` exits 1 on findings. Link text is not changed.
+- `vault.Link.text`: an inline link's text.
 - `move.move_many`: several moves in one pass over the repository (`just move` uses it for one), and a rename that
   only changes letter case works on a case-insensitive file system.
 
