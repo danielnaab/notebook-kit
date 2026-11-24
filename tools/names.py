@@ -16,8 +16,9 @@ repeated `title` and heading. A title with characters a filename can't hold (`: 
 title-named file would collide with another note is left alone and reported. Index files are skipped. --strict
 exits 1 when anything is reported. Link text is not changed.
 
---rename-only renames (and repoints unwritten links) and keeps the copies: commit that, then run --fix, so that git sees pure renames (dropping a
-title and heading from a short note changes enough of it that git would see a deletion and a new file).
+--rename-only only renames, rewriting the links to the renamed notes: commit that, then run --fix, so that git
+sees pure renames (repointing links and dropping a title and heading change a short note enough that git would
+see a deletion and a new file).
 """
 
 from __future__ import annotations
@@ -221,12 +222,11 @@ def fix(root: Path, paths: list[str], notes: list[Note], rename_only: bool = Fal
     moves = [(n.rel, n.target) for n in notes if n.target]
     if moves:
         move.move_many(root, moves)
+    if rename_only:
+        return 0
     moved = dict(moves)
     links = unwritten_links(root, [moved.get(move._normalize(p), p) for p in paths])
     repoint(root, links)
-    if rename_only:
-        return len(links)
-        return
     for note in notes:
         rel = note.target or note.rel
         path = root / rel
@@ -244,7 +244,7 @@ def main() -> int:
     parser.add_argument("paths", nargs="*", help="Repository-relative folders or notes (default: the bundle's wiki/)")
     parser.add_argument("--root", type=Path, default=Path.cwd(), help="Workspace root (default: cwd)")
     parser.add_argument("--fix", action="store_true", help="Rename notes to their titles and drop repeated names")
-    parser.add_argument("--rename-only", action="store_true", help="With --fix: rename, keep the repeated names")
+    parser.add_argument("--rename-only", action="store_true", help="With --fix: only rename (a commit of pure renames)")
     parser.add_argument("--strict", action="store_true", help="Exit 1 when anything is reported")
     args = parser.parse_args()
     root = args.root.resolve()

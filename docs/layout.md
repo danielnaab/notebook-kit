@@ -108,7 +108,7 @@ A note is either **named**, found and linked by what it is about, or **dated**, 
 - `just names` reports named notes that are not named by their title, or repeat the name in `title` or a
   heading, and links to unwritten notes named by their text slugged (`[Pat Lee](pat-lee.md)`, which a click in
   Obsidian would create as `pat-lee.md`). `just names --fix` renames the notes, rewriting the links to them in
-  one pass, points those links at `Pat%20Lee.md`, and drops the copies (`--rename-only` keeps them, for a commit
+  one pass, points those links at `Pat%20Lee.md`, and drops the copies (`--rename-only` only renames, for a commit
   git records as pure renames). It checks the bundle's `wiki/` unless given paths.
 
 ## Sources

@@ -15,7 +15,7 @@ renamed in Obsidian leaves its `title` and `# heading` behind. A wiki page is no
   in one pass, and drops the copies. A link to a note not written yet whose filename is its text slugged
   (`[Pat Lee](pat-lee.md)`, as a migration from wikilinks writes them) is pointed at `Pat%20Lee.md`, so a click
   in Obsidian creates a title-named note. It checks the bundle's `wiki/` unless given paths; a note whose new name is
-  taken is reported and left alone; `--rename-only` renames and keeps the copies, for a commit of pure renames;
+  taken is reported and left alone; `--rename-only` only renames, for a commit of pure renames;
   `--strict` exits 1 on findings. Link text is not changed.
 - `vault.Link.text`: an inline link's text.
 - `move.move_many`: several moves in one pass over the repository (`just move` uses it for one), and a rename that
@@ -45,7 +45,8 @@ renamed in Obsidian leaves its `title` and `# heading` behind. A wiki page is no
    `wiki/people/<slug>.md`, for instance) must look them up by name first: take their releases that do
    (meeting-kit v0.5.0), or keep their folders out of the run.
 3. `just names --fix --rename-only [PATHS]`, then `just index`, and commit the renames on their own; then
-   `just names --fix [PATHS]` and `just index` drop the repeated titles and headings, in a second commit. Git then
+   `just names --fix [PATHS]` and `just index` repoint the unwritten links and drop the repeated titles and
+   headings, in a second commit. Git then
    records pure renames, which `git log --follow` traces. On a case-insensitive file system (macOS), a rename
    that only changes letter case (`litellm.md` -> `LiteLLM.md`) isn't staged by `git add -A`: stage it with
    `git rm --cached OLD` and `git add NEW`.
