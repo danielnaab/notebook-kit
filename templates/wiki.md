@@ -1,15 +1,13 @@
 ---
 type: Topic
-title: "{{title}}"
 description: ""
 status: draft
 created: {{date:YYYY-MM-DD}}
 updated: {{date:YYYY-MM-DD}}
 ---
 
-# {{title}}
-
-<!-- Focused current synthesis. Identify proposals, authority, and freshness limits.
+<!-- Named by its title: no `title` field or `# heading` repeats the filename.
+     Focused current synthesis. Identify proposals, authority, and freshness limits.
      Update rather than duplicate as understanding changes. -->
 
 ## Sources

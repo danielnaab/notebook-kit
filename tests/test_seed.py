@@ -214,7 +214,7 @@ class SeedTest(unittest.TestCase):
 JUST = shutil.which("just")
 KIT_RECIPES = {
     "check": ["check", "graft-check", "check-kb", "check-tasks", "check-templates", "check-obsidian"],
-    "notes": ["index", "move"],
+    "notes": ["index", "move", "names"],
     "deps": ["outdated", "changelog", "upgrade", "migrate", "sync"],
     "migrations": ["convert", "upgrade-obsidian"],
 }
@@ -233,8 +233,8 @@ class JustMenuTest(unittest.TestCase):
         self.stubs = self.root / ".stubs"
         self.stubs.mkdir()
         self.log = self.root / ".calls"
-        for name in ("check-kb", "check-tasks", "check-templates", "check-obsidian", "nb-index", "nb-move", "nb-convert",
-                     "upgrade-obsidian", "graft"):
+        for name in ("check-kb", "check-tasks", "check-templates", "check-obsidian", "nb-index", "nb-move", "nb-names",
+                     "nb-convert", "upgrade-obsidian", "graft"):
             stub = self.stubs / name
             stub.write_text(f'#!/bin/sh\n{{ printf {name}; for a; do printf "\\037%s" "$a"; done; echo; }} >> "{self.log}"\n')
             stub.chmod(0o755)
@@ -294,9 +294,11 @@ class JustMenuTest(unittest.TestCase):
         proc = self.just("move", "notebook/a b.md", "notebook/c.md", "--dry-run", cwd=self.root / "notebook")
         self.assertEqual(0, proc.returncode, proc.stderr)
         self.just("index", "--check")
+        self.just("names", "notebook/wiki/a b.md", "--fix")
         self.just("changelog", "notebook-kit")
         self.assertEqual([["nb-move", "notebook/a b.md", "notebook/c.md", "--dry-run"], ["nb-index", "--check"],
-                          ["graft", "changelog", "notebook-kit"]], self.calls())
+                          ["nb-names", "notebook/wiki/a b.md", "--fix"], ["graft", "changelog", "notebook-kit"]],
+                         self.calls())
 
     def test_sync_runs_graft_bare_and_upgrade_applies_obsidian_and_lists_next_steps(self):
         self.just("sync")

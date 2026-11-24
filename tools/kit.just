@@ -72,6 +72,12 @@ index *args:
 move old new *flags:
     {{replace(kit_run, "{}", "nb-move")}} "$@"
 
+# Report notes not named by their titles, or repeating the name; --fix renames them and rewrites links
+[group('notes')]
+[positional-arguments]
+names *args:
+    {{replace(kit_run, "{}", "nb-names")}} "$@"
+
 # Show the pinned and newest tag of each scion
 [group('deps')]
 [positional-arguments]

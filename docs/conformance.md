@@ -26,7 +26,7 @@ records this in a short **knowledge-base-kit conformance** section of its local 
 | Provenance | `sources` frontmatter with footnotes, or `## Sources`, in docs, wiki pages, task records, and session records. `README.md`, `AGENTS.md`, and `index.md` listings are exempt. |
 | Lifecycle | `status: draft \| working \| stable \| deprecated` on `docs/` and wiki pages. Raw sources and records carry none; their path marks them. |
 | Linking | Relative Markdown links; backticks for literal paths and code only. |
-| Intent-revealing structure | Descriptive file and session slugs. |
+| Intent-revealing structure | Named notes named by their titles; records and tasks by descriptive dated slugs ([naming](layout.md#naming)). |
 | Write boundaries | `rules.writes` in `knowledge-base.yaml`; unlisted paths get conservative, documentation-only edits. |
 | Style | Concise bullets; trim long sections when touched. |
 

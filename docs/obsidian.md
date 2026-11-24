@@ -30,9 +30,13 @@ reviewed plugin settings; machine-specific UI state stays local.
 - Paths in the settings are relative to the vault, `notebook/`. Templates must live in a visible folder, which is
   why a workspace copies them from the kit into `notebook/templates/`.
 - Notes cannot link to workspace docs or the kit, which are outside the vault; use URLs or backticked paths.
-- `[[` autocomplete finds notes by `title` and `aliases` and inserts a Markdown link; people notes carry an
-  `@Full Name` alias, so `[[@` lists people. Links to notes not written yet show in the graph and create the
-  note on click.
+- `[[` autocomplete finds notes by filename and `aliases`, not by `title`, and inserts a Markdown link whose text
+  is the name picked: the filename, or the alias. Named notes are therefore named by their titles
+  ([naming](layout.md#naming)), and people notes carry an `@Full Name` alias, so `[[@` lists people.
+- Typing `[[A New Topic]]` links a note not written yet: it shows in the graph and is created in `wiki/` on
+  click, named as typed. Insert the wiki template there for its frontmatter.
+- Rename notes freely in Obsidian: it renames the file and rewrites the links to it, as `just move` does. Link
+  text stays as written.
 - Track plugin `data.json` files only for plugins you have reviewed: preferences can contain credentials or
   private text. Keep plugin executables, manifests, caches, and live workspace state ignored: a clone restores
   preferences, and `just upgrade-obsidian` installs the pinned plugins.

@@ -22,7 +22,7 @@
           # the seed: a workspace's source, with its notebook-kit.yaml and empty task index
           seeded = kit ./seed/common;
           names = [ "check-kb" "check-obsidian" "check-tasks" "check-templates" "just" "markdownlint-cli2"
-                    "nb-convert" "nb-index" "nb-move" "nb-pre-commit" "upgrade-obsidian" ];
+                    "nb-convert" "nb-index" "nb-move" "nb-names" "nb-pre-commit" "upgrade-obsidian" ];
         in
         {
           inherit (own) tools apps packages;

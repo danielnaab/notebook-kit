@@ -11,6 +11,7 @@ from __future__ import annotations
 
 import argparse
 import os
+import re
 import shutil
 import sys
 from pathlib import Path
@@ -28,31 +29,58 @@ def markdown_files(root: Path) -> list[Path]:
     return found
 
 
+def _normalize(path: str) -> str:
+    return os.path.normpath(path).replace(os.sep, "/")
+
+
+def _case_only(root: Path, old: str, new: str) -> bool:
+    """A rename that changes only letter case, on a file system where both names are the same file."""
+    return old != new and old.casefold() == new.casefold() and (root / new).exists() \
+        and os.path.samefile(root / old, root / new)
+
+
 def move(root: Path, old: str, new: str, dry_run: bool = False) -> tuple[list[str], list[str]]:
     """Move root/old to root/new. Returns (files whose links changed, files that mention old as text)."""
+    return move_many(root, [(old, new)], dry_run)
+
+
+def move_many(root: Path, moves: list[tuple[str, str]], dry_run: bool = False) -> tuple[list[str], list[str]]:
+    """Move each root/old to root/new in one pass over the repository's Markdown.
+
+    Returns (files whose links changed, files that mention an old path as text). Every source must exist and no
+    destination may, except for a rename that changes only letter case on a case-insensitive file system.
+    """
     root = root.resolve()
-    old = os.path.normpath(old).replace(os.sep, "/")
-    new = os.path.normpath(new).replace(os.sep, "/")
-    source, target = root / old, root / new
-    if not source.exists():
-        raise SystemExit(f"move: {old} does not exist")
-    if target.exists():
-        raise SystemExit(f"move: {new} already exists")
-    if new == old or new.startswith(old + "/"):
-        raise SystemExit("move: cannot move a path into itself")
+    moves = [(_normalize(old), _normalize(new)) for old, new in moves]
+    olds = [old for old, _ in moves]
+    if len(set(olds)) != len(olds) or len({new.casefold() for _, new in moves}) != len(moves):
+        raise SystemExit("move: two moves share a source or a destination")
+    for old, new in moves:
+        if not (root / old).exists():
+            raise SystemExit(f"move: {old} does not exist")
+        if (root / new).exists() and not _case_only(root, old, new):
+            raise SystemExit(f"move: {new} already exists")
+        if new == old or new.startswith(old + "/"):
+            raise SystemExit("move: cannot move a path into itself")
     b = vault.bundle(root)
+    exact = dict(moves)
+    folders = sorted(((old, new) for old, new in moves if (root / old).is_dir()), key=lambda m: -len(m[0]))
 
     def mapped(rel: str) -> str:
-        if rel == old:
-            return new
-        if rel.startswith(old + "/"):
-            return new + rel[len(old):]
+        if rel in exact:
+            return exact[rel]
+        for old, new in folders:
+            if rel.startswith(old + "/"):
+                return new + rel[len(old):]
         return rel
 
     # Plain-text mentions use the repository path or the path inside the bundle.
     # A bare one-word name ("daily") would match prose, so only path-like names count.
-    inner = old[len(b.root) + 1:] if b.root and old.startswith(b.root + "/") else old
-    mention_names = {n for n in (old, inner) if "/" in n or "." in n}
+    def inner(old: str) -> str:
+        return old[len(b.root) + 1:] if b.root and old.startswith(b.root + "/") else old
+
+    names = sorted({n for old in olds for n in (old, inner(old)) if "/" in n or "." in n}, key=len, reverse=True)
+    mention = re.compile("|".join(map(re.escape, names))) if names else None
     changed, mentions, updates = [], [], {}
     for path in markdown_files(root):
         rel = path.relative_to(root).as_posix()
@@ -88,15 +116,21 @@ def move(root: Path, old: str, new: str, dry_run: bool = False) -> tuple[list[st
         if updated != text:
             updates[new_rel] = updated
             changed.append(new_rel)
-        plain = vault.links_masked_text(updated)
-        if any(name in plain for name in mention_names):
+        if mention and mention.search(vault.links_masked_text(updated)):
             mentions.append(new_rel)
 
     if not dry_run:
         # Move first, then write the new links into each file at its new path. Interrupted in between, the links
         # are stale and the checks report them; written first, a re-run would rewrite them a second time.
-        target.parent.mkdir(parents=True, exist_ok=True)
-        shutil.move(str(source), str(target))
+        for old, new in moves:
+            source, target = root / old, root / new
+            if _case_only(root, old, new):
+                # the same file under both names: go through a temporary name so the new case sticks
+                interim = source.with_name(source.name + ".moving")
+                source.rename(interim)
+                source = interim
+            target.parent.mkdir(parents=True, exist_ok=True)
+            shutil.move(str(source), str(target))
         for new_rel, text in updates.items():
             (root / new_rel).write_text(text, encoding="utf-8")
     return changed, mentions

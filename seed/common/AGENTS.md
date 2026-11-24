@@ -35,7 +35,8 @@ Markdown in Obsidian.
   through. Move notes with `just move OLD NEW`; regenerate folder indexes with `just index`.
 - Skills `notebook-start` and `notebook-wrap` come from the kit (see `.pi/settings.json`).
 - Maintain durable synthesis in `notebook/wiki/` with lifecycle frontmatter and provenance (`sources` frontmatter
-  or `## Sources`).
+  or `## Sources`). Name wiki pages by their titles (`wiki/people/Pat Lee.md`); records and tasks keep
+  dated slugs ([naming](.scions/notebook-kit/docs/layout.md#naming)).
 - Read only notes relevant to the task; do not bulk ingest the vault.
 
 ## Write rules

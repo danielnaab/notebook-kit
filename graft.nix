@@ -2,7 +2,7 @@
 # knowledge-base-kit grafted beside it: the checker the kit's tools run.
 #
 # tools (packages.<system>.tools, on PATH in the dev shell), each also an app (`nix run .#check-kb`):
-#   check-kb, check-tasks, check-templates, check-obsidian, upgrade-obsidian, nb-index, nb-move, nb-convert,
+#   check-kb, check-tasks, check-templates, check-obsidian, upgrade-obsidian, nb-index, nb-move, nb-names, nb-convert,
 #   plus just and markdownlint-cli2. tools/kit.just runs them as `just check-kb`, `just index`, `just move`, ...
 # packages.obsidian-plugins: the pinned community-plugin releases upgrade-obsidian installs.
 # checks.<system>.notebook-kit-tasks: check-tasks on the workspace, when its flake's source has a notebook-kit.yaml
@@ -39,6 +39,7 @@ let
       "Merge the kit's seeded Obsidian settings into the vault, keeping local changes (Obsidian closed)" false ];
     nb-index = [ "index.py" "Generate the vault's index.md listings from note frontmatter (--check: report stale ones)" true ];
     nb-move = [ "move.py" "Move a note or folder and rewrite the links to and from it" true ];
+    nb-names = [ "names.py" "Name notes by their titles, rewriting the links to them (--fix; default: report)" true ];
     nb-convert = [ "convert.py" "Convert a v0.1 workspace to the v0.2 vault layout" true ];
   };
 
@@ -100,6 +101,7 @@ let
       check-obsidian = { run = "check-obsidian"; description = "Report how the vault's shared Obsidian settings differ from the kit's (--strict: fail on drift)"; };
       index = { run = "nb-index"; description = "Regenerate the vault's index.md listings from note frontmatter (--check: report stale ones)"; };
       move = { run = "nb-move"; description = "Move a note or folder and rewrite the links to and from it (paths from the repository root; --dry-run)"; };
+      names = { run = "nb-names"; description = "Report notes not named by their titles, or repeating the name; --fix renames them and rewrites links"; };
       upgrade-obsidian = { run = "upgrade-obsidian"; description = "Merge the kit's Obsidian settings into the vault, keeping local changes (quit Obsidian first)"; };
       convert = { run = "nb-convert"; description = "Convert a v0.1 workspace to the v0.2 vault layout (--dry-run)"; };
     };

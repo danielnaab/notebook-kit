@@ -28,7 +28,9 @@ templates in `notebook/templates/`.
 4. Distinguish proposed, changed, committed, pushed, merged, and activated work. State exact verification and
    unrun checks.
 5. Update durable `notebook/wiki/` pages when understanding changes, with lifecycle status and provenance
-   (`sources` frontmatter or `## Sources`). Links stay inside `notebook/`; move notes with `just move`.
+   (`sources` frontmatter or `## Sources`). Name a new page by its title (`wiki/people/Pat Lee.md`), with no
+   `title` or `#` heading repeating it ([naming](../../docs/layout.md#naming)); give an empty note created from
+   an Obsidian link its frontmatter. Links stay inside `notebook/`; move notes with `just move`.
 6. Follow the [daily-note ownership and review rules](../../docs/workflow.md#daily-notes): reserve Notes for
    human input; preserve human wording and edits in every section. At a relevant checkpoint, review only Notes
    entries related to the focus and suggest canonical updates without treating tentative thoughts as tasks or authorization.

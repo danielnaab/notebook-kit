@@ -36,8 +36,9 @@ Every note in the bundle is OKF frontmatter plus a Markdown body.
 | Field | Use |
 | --- | --- |
 | `type` | Required. `Daily Note`, `Session`, `Task`, `Topic`, `Person`, `Source`, or another descriptive name. |
-| `title`, `description` | Recommended. The display name, and one sentence that the folder index shows. |
-| `aliases` | Other names for `[[` autocomplete in Obsidian; people notes carry `@Full Name`. |
+| `title` | The display name, when the filename can't be it: a record's dated slug, or a name with characters a filename can't hold ([naming](#naming)). A named note leaves it out. |
+| `description` | Recommended. One sentence that the folder index shows. |
+| `aliases` | Other names for `[[` autocomplete in Obsidian (an abbreviation, a former name); people notes carry `@Full Name`. |
 | `sources` | Provenance: each entry has a `resource` (URL or path) and an `id` that footnotes cite (`[^id]`). |
 | `generated` | Agent-written notes: `{ by: <producer>/<version>, at: <ISO 8601 with offset> }`. |
 | `verified` | A review: `{ by: human:<id>, at: … }`; `process:<id>` names an automated check. |
@@ -45,7 +46,7 @@ Every note in the bundle is OKF frontmatter plus a Markdown body.
 | `stale_after` | When a note about something time-bound stops being trustworthy. |
 | `resource` | For a raw source: the URL or document it was captured from. |
 
-- Filenames may be dated slugs; `title` holds the real name, and agents write it as link text.
+- A note's name is its filename, else its `title` ([naming](#naming)); agents write it as link text.
 - Wiki pages also carry `status` (`draft`, `working`, `stable`, `deprecated`) and provenance: `sources`
   frontmatter or a `## Sources` section.
 
@@ -58,15 +59,16 @@ Every note in the bundle is OKF frontmatter plus a Markdown body.
 - Links out of the vault (workspace docs, the kit) are absolute URLs or backticked paths, since the vault is
   opened on its own.
 - Move notes with `just move OLD NEW`: it rewrites every relative link to and from them. Obsidian does
-  the same for renames made inside Obsidian.
+  the same for renames made inside Obsidian. Neither changes link text, so a link keeps the name it was written with.
+- Spaces in a destination are written `%20`, as Obsidian writes them; the checks read either form.
 - Backticks are for literal paths, patterns, and code, not for navigation.
 
 ## Index files
 
 - Folders use OKF `index.md` listings: headed sections of `* [Title](path) - description`, no frontmatter. The
   vault root's `index.md` declares `okf_version`. `README.md` has no special meaning inside the vault.
-- `just index` generates them from note frontmatter (`title`, else the first `#` heading, and
-  `description`); `--check` reports stale ones. `tasks/index.md` lists active tasks by status, and the task
+- `just index` generates them from note frontmatter (`title`, else the first `#` heading, else the filename,
+  and `description`); `--check` reports stale ones. `tasks/index.md` lists active tasks by status, and the task
   check fails when it is stale.
 
 ## Templates
@@ -87,8 +89,25 @@ Every note in the bundle is OKF frontmatter plus a Markdown body.
 
 ## Naming
 
-- Descriptive slugs: `2026-11-05-repository-layout`, not `session-3`.
-- Task records keep their creation-month path when their status changes. The path is the identifier.
+A note is either **named**, found and linked by what it is about, or **dated**, found by when it happened.
+
+- **Named notes** (wiki pages: people, topics, organizations, projects) are named by their title, with spaces and
+  capitals: `wiki/people/Pat Lee.md`, `wiki/Retrieval-Augmented Generation (RAG).md`. The filename is the name
+  Obsidian shows, searches, autocompletes after `[[`, and writes as link text, so renaming the note in Obsidian
+  renames it everywhere. A copy drifts on the first rename, so a named note has no `title` and no first `#`
+  heading repeating the name (Obsidian shows the filename as the note's inline title).
+- A filename can't hold `* " \ / < > : | ?`, and `# ^ [ ]` break Obsidian's links. Use the nearest name
+  ("Q3: plan?" becomes `Q3 - plan.md`) and keep the exact one in `title`. Other names go in `aliases`.
+- Folders are structure, not names: lowercase, like `wiki/people/`.
+- **Dated notes** (records and task records) keep descriptive dated slugs, `records/sessions/2026-11/2026-11-05-repository-layout.md`,
+  not `session-3`, with the display name in `title`. Tools and agents write them, and their paths are identifiers:
+  task records keep their creation-month path when their status changes.
+- A note made in Obsidian by clicking a link to an unwritten note starts empty, named as the link was typed.
+  Give it frontmatter (insert the wiki template, or an agent adds `type` and `status` when it next touches the
+  note); `just check-kb` reports a note without a `type`.
+- `just names` reports named notes that are not named by their title, or repeat the name in `title` or a
+  heading; `just names --fix` renames them, rewriting the links to them in one pass, and drops the copies. It
+  checks the bundle's `wiki/` unless given paths.
 
 ## Sources
 

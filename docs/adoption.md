@@ -37,7 +37,7 @@ still on graft v2.18.0 to v2.22.0 can use this release too: the kit's own files 
    ```sh
    git init -b main && git add -A
    nix run github:danielnaab/tuteur/v0.1.0 -- add --scions .scions https://github.com/danielnaab/knowledge-base-kit@v2.2.2
-   nix run github:danielnaab/tuteur/v0.1.0 -- add https://github.com/danielnaab/notebook-kit@v2.2.0
+   nix run github:danielnaab/tuteur/v0.1.0 -- add https://github.com/danielnaab/notebook-kit@v2.3.0
    git commit -m "Seed the workspace"   # Nix reads the scions at the commits the repository records
    nix flake lock
    cp .scions/notebook-kit/templates/*.md notebook/templates/
@@ -61,7 +61,7 @@ a recipe's body, `@{{just_executable()}} --justfile {{quote(justfile())}} RECIPE
 | --- | --- |
 | Conventions | Links into `.scions/notebook-kit/docs/`; the local `docs/conventions.md` states only local rules. |
 | Agent skills | `.pi/settings.json` lists `../.scions/notebook-kit/skills` under `skills`. |
-| Tools and flake wiring | The kit's [`graft.nix`](../graft.nix): tuteur's `mkFlake` puts the tools in `packages.<system>.tools` (and the dev shell) and an app per tool: `check-kb`, `check-tasks`, `check-templates`, `check-obsidian`, `upgrade-obsidian`, `nb-index`, `nb-move`, and `nb-convert` (the v0.2 upgrade), plus `just` and `markdownlint-cli2`; `packages.<system>.obsidian-plugins`; and the task check `checks.<system>.notebook-kit-tasks` when the flake's source has a `notebook-kit.yaml`. `flake.nix` names no kit. |
+| Tools and flake wiring | The kit's [`graft.nix`](../graft.nix): tuteur's `mkFlake` puts the tools in `packages.<system>.tools` (and the dev shell) and an app per tool: `check-kb`, `check-tasks`, `check-templates`, `check-obsidian`, `upgrade-obsidian`, `nb-index`, `nb-move`, `nb-names`, and `nb-convert` (the v0.2 upgrade), plus `just` and `markdownlint-cli2`; `packages.<system>.obsidian-plugins`; and the task check `checks.<system>.notebook-kit-tasks` when the flake's source has a `notebook-kit.yaml`. `flake.nix` names no kit. |
 | Settings | `notebook-kit.yaml` at the top, read when a tool runs ([workspace settings](#workspace-settings)). |
 | Operations menu | The seeded `justfile` imports `tools/kit.just` from the scion ([run operations with just](#run-operations-with-just)). |
 | Hook | The seeded `.githooks/pre-commit` wrapper runs the kit's hook; `core.hooksPath` is `.githooks`. |

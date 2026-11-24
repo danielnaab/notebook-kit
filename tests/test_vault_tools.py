@@ -223,3 +223,80 @@ class ReviewRegressionTest(VaultTestCase):
         self.assertNotIn("wiki/README.md had local prose", proc.stdout)
         self.assertIn("* [Hand-written map](map.md)", self.read("notebook/wiki/index.md"))
         self.assertEqual("/notebook/.obsidian/workspace.json\n", self.read(".gitignore"))
+
+
+class NamesTest(VaultTestCase):
+    """names.py: notes named by their titles, the repeated title and heading dropped."""
+
+    def setUp(self):
+        super().setUp()
+        self.write("notebook/wiki/pat-lee.md", "---\ntype: Person\ntitle: Pat Lee\naliases:\n  - \"@Pat Lee\"\n---\n\n"
+                   "# Pat Lee\n\nWorks on [the plan](q3-plan.md).\n")
+        self.write("notebook/wiki/q3-plan.md", "---\ntype: Topic\ntitle: \"Q3: plan?\"\nstatus: draft\n---\n\n# Q3: plan?\n\n"
+                   "With [Pat](pat-lee.md#role).\n")
+        self.write("notebook/wiki/Kept Name.md", "---\ntype: Topic\nstatus: draft\n---\n\n# Kept Name\n\n## Notes\n")
+        self.write("notebook/wiki/index.md", "# Wiki\n")
+        self.write("notebook/records/daily/2026-11/2026-11-06.md", "---\ntype: Daily Note\n---\n\nMet [Pat Lee](../../../wiki/pat-lee.md).\n")
+
+    def test_filename_for(self):
+        import names
+        self.assertEqual("Q3 - plan", names.filename_for("Q3: plan?"))
+        self.assertEqual("A - B - C", names.filename_for("A/B | C"))
+        self.assertEqual("Words, etc.", names.filename_for("Words, etc."))
+        self.assertEqual("env notes", names.filename_for(".env notes"))
+        self.assertEqual("Say 'hi' (draft)", names.filename_for('Say "hi" [draft]'))
+        self.assertEqual("Luigi Ray-Montañez", names.filename_for("Luigi  Ray-Montan\u0303ez"))
+        self.assertLessEqual(len(names.filename_for("word " * 100).encode()), 200)
+
+    def test_report(self):
+        proc = self.tool("names.py", "--strict")
+        self.assertEqual(1, proc.returncode, proc.stdout)
+        self.assertIn("notebook/wiki/pat-lee.md: named pat-lee.md, not its title: -> Pat Lee.md", proc.stdout)
+        self.assertIn("notebook/wiki/pat-lee.md: title repeats the filename", proc.stdout)
+        self.assertIn("notebook/wiki/Kept Name.md: first heading repeats the name", proc.stdout)
+        self.assertNotIn("q3-plan.md: title repeats", proc.stdout, "a title a filename can't hold is kept")
+        self.assertNotIn("index.md", proc.stdout)
+        self.assertTrue((self.root / "notebook/wiki/pat-lee.md").exists(), "a report writes nothing")
+
+    def test_fix(self):
+        proc = self.tool("names.py", "--fix")
+        self.assertEqual(0, proc.returncode, proc.stderr)
+        self.assertEqual("---\ntype: Person\naliases:\n  - \"@Pat Lee\"\n---\n\nWorks on [the plan](Q3%20-%20plan.md).\n",
+                         self.read("notebook/wiki/Pat Lee.md"))
+        self.assertEqual("---\ntype: Topic\ntitle: \"Q3: plan?\"\nstatus: draft\n---\n\nWith [Pat](Pat%20Lee.md#role).\n",
+                         self.read("notebook/wiki/Q3 - plan.md"))
+        self.assertEqual("---\ntype: Topic\nstatus: draft\n---\n\n## Notes\n", self.read("notebook/wiki/Kept Name.md"))
+        self.assertIn("[Pat Lee](../../../wiki/Pat%20Lee.md)", self.read("notebook/records/daily/2026-11/2026-11-06.md"))
+        self.assertFalse((self.root / "notebook/wiki/pat-lee.md").exists())
+        again = self.tool("names.py", "--strict")
+        self.assertEqual(0, again.returncode, again.stdout)
+        self.assertEqual(0, self.tool("index.py").returncode)
+        self.assertIn("* [Pat Lee](Pat%20Lee.md)", self.read("notebook/wiki/index.md"))
+        self.assertIn("* [Q3: plan?](Q3%20-%20plan.md)", self.read("notebook/wiki/index.md"))
+
+    def test_collisions_are_left_alone(self):
+        self.write("notebook/wiki/Pat Lee.md", "---\ntype: Person\n---\n\nAnother Pat.\n")
+        self.write("notebook/wiki/patricia.md", "---\ntype: Person\ntitle: Q3 - plan\n---\n")
+        self.write("notebook/wiki/q3.md", "---\ntype: Person\ntitle: Q3 - plan\n---\n")
+        proc = self.tool("names.py", "--fix", "notebook/wiki")
+        self.assertIn("collision: notebook/wiki/pat-lee.md: notebook/wiki/Pat Lee.md is taken", proc.stderr)
+        self.assertIn("collision: notebook/wiki/q3.md", proc.stderr)
+        self.assertTrue((self.root / "notebook/wiki/pat-lee.md").exists())
+        self.assertIn("title: Pat Lee", self.read("notebook/wiki/pat-lee.md"), "an unrenamed note keeps its title")
+        self.assertEqual("Another Pat.", self.read("notebook/wiki/Pat Lee.md").split("---\n\n")[1].strip())
+
+    def test_paths_limit_the_scope(self):
+        self.tool("names.py", "--fix", "notebook/wiki/q3-plan.md")
+        self.assertTrue((self.root / "notebook/wiki/pat-lee.md").exists())
+        self.assertIn("(pat-lee.md#role)", self.read("notebook/wiki/Q3 - plan.md"))
+
+    def test_move_many_in_one_pass(self):
+        import move
+        changed, _ = move.move_many(self.root, [("notebook/wiki/pat-lee.md", "notebook/wiki/people/Pat Lee.md"),
+                                                ("notebook/wiki/q3-plan.md", "notebook/wiki/plans/Q3.md")])
+        self.assertIn("[the plan](../plans/Q3.md)", self.read("notebook/wiki/people/Pat Lee.md"))
+        self.assertIn("[Pat](../people/Pat%20Lee.md#role)", self.read("notebook/wiki/plans/Q3.md"))
+        self.assertEqual(3, len(changed))
+        with self.assertRaises(SystemExit):
+            move.move_many(self.root, [("notebook/wiki/plans/Q3.md", "notebook/wiki/x.md"),
+                                       ("notebook/wiki/Kept Name.md", "notebook/wiki/X.md")])
