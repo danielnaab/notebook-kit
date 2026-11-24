@@ -13,7 +13,8 @@ renamed in Obsidian leaves its `title` and `# heading` behind. A wiki page is no
   `title` or a first `#` heading; `--fix` renames each to its title (the nearest filename when the title holds
   characters a filename can't: `Q3: plan?` becomes `Q3 - plan.md`, keeping `title`), rewriting every link to them
   in one pass, and drops the copies. It checks the bundle's `wiki/` unless given paths; a note whose new name is
-  taken is reported and left alone; `--strict` exits 1 on findings. Link text is not changed.
+  taken is reported and left alone; `--rename-only` renames and keeps the copies, for a commit of pure renames;
+  `--strict` exits 1 on findings. Link text is not changed.
 - `move.move_many`: several moves in one pass over the repository (`just move` uses it for one), and a rename that
   only changes letter case works on a case-insensitive file system.
 
@@ -40,8 +41,11 @@ renamed in Obsidian leaves its `title` and `# heading` behind. A wiki page is no
 2. Run `just names` and read the report. Tools or agents that find wiki notes by a slugged path (a person at
    `wiki/people/<slug>.md`, for instance) must look them up by name first: take their releases that do
    (meeting-kit v0.5.0), or keep their folders out of the run.
-3. `just names --fix [PATHS]`, then `just index`. Commit the renames on their own: `git log --follow` traces a
-   note through its rename, and a commit that also edits content can hide it.
+3. `just names --fix --rename-only [PATHS]`, then `just index`, and commit the renames on their own; then
+   `just names --fix [PATHS]` and `just index` drop the repeated titles and headings, in a second commit. Git then
+   records pure renames, which `git log --follow` traces. On a case-insensitive file system (macOS), a rename
+   that only changes letter case (`litellm.md` -> `LiteLLM.md`) isn't staged by `git add -A`: stage it with
+   `git rm --cached OLD` and `git add NEW`.
 4. Search the workspace outside the vault (docs, scripts, other repositories' URLs) for the old paths `just names`
    printed; links there are not rewritten. Obsidian bookmarks to renamed notes need re-adding.
 5. Done when `just names --strict` and `just check` pass.

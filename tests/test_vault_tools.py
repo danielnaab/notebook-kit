@@ -274,6 +274,15 @@ class NamesTest(VaultTestCase):
         self.assertIn("* [Pat Lee](Pat%20Lee.md)", self.read("notebook/wiki/index.md"))
         self.assertIn("* [Q3: plan?](Q3%20-%20plan.md)", self.read("notebook/wiki/index.md"))
 
+    def test_rename_only_keeps_the_copies(self):
+        proc = self.tool("names.py", "--fix", "--rename-only")
+        self.assertIn("2 notes renamed", proc.stdout)
+        self.assertIn("title: Pat Lee", self.read("notebook/wiki/Pat Lee.md"))
+        self.assertIn("# Pat Lee", self.read("notebook/wiki/Pat Lee.md"))
+        self.assertIn("(Q3%20-%20plan.md)", self.read("notebook/wiki/Pat Lee.md"))
+        self.tool("names.py", "--fix")
+        self.assertNotIn("title:", self.read("notebook/wiki/Pat Lee.md"))
+
     def test_collisions_are_left_alone(self):
         self.write("notebook/wiki/Pat Lee.md", "---\ntype: Person\n---\n\nAnother Pat.\n")
         self.write("notebook/wiki/patricia.md", "---\ntype: Person\ntitle: Q3 - plan\n---\n")

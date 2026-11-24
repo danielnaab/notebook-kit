@@ -106,8 +106,9 @@ A note is either **named**, found and linked by what it is about, or **dated**, 
   Give it frontmatter (insert the wiki template, or an agent adds `type` and `status` when it next touches the
   note); `just check-kb` reports a note without a `type`.
 - `just names` reports named notes that are not named by their title, or repeat the name in `title` or a
-  heading; `just names --fix` renames them, rewriting the links to them in one pass, and drops the copies. It
-  checks the bundle's `wiki/` unless given paths.
+  heading; `just names --fix` renames them, rewriting the links to them in one pass, and drops the copies
+  (`--rename-only` keeps them, for a commit git records as pure renames). It checks the bundle's `wiki/` unless
+  given paths.
 
 ## Sources
 

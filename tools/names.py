@@ -12,6 +12,9 @@ does), and drops the repeated `title` and heading. A title with characters a fil
 | # ^ [ ]`) gets the nearest filename, "Q3: plan?" -> "Q3 - plan.md", and keeps its `title`. A note whose
 title-named file would collide with another note is left alone and reported. Index files are skipped. --strict
 exits 1 when anything is reported. Link text is not changed.
+
+--rename-only renames and keeps the copies: commit that, then run --fix, so that git sees pure renames (dropping a
+title and heading from a short note changes enough of it that git would see a deletion and a new file).
 """
 
 from __future__ import annotations
@@ -155,10 +158,12 @@ def plan(root: Path, paths: list[str]) -> tuple[list[Note], list[str]]:
     return [n for n in notes if n.findings], collisions
 
 
-def fix(root: Path, notes: list[Note]) -> None:
+def fix(root: Path, notes: list[Note], rename_only: bool = False) -> None:
     moves = [(n.rel, n.target) for n in notes if n.target]
     if moves:
         move.move_many(root, moves)
+    if rename_only:
+        return
     for note in notes:
         rel = note.target or note.rel
         path = root / rel
@@ -175,6 +180,7 @@ def main() -> int:
     parser.add_argument("paths", nargs="*", help="Repository-relative folders or notes (default: the bundle's wiki/)")
     parser.add_argument("--root", type=Path, default=Path.cwd(), help="Workspace root (default: cwd)")
     parser.add_argument("--fix", action="store_true", help="Rename notes to their titles and drop repeated names")
+    parser.add_argument("--rename-only", action="store_true", help="With --fix: rename, keep the repeated names")
     parser.add_argument("--strict", action="store_true", help="Exit 1 when anything is reported")
     args = parser.parse_args()
     root = args.root.resolve()
@@ -187,8 +193,9 @@ def main() -> int:
         print(f"collision: {collision}", file=sys.stderr)
     renames = sum(1 for n in notes if n.target)
     if args.fix:
-        fix(root, notes)
-        print(f"Names: {len(notes)} notes fixed ({renames} renamed), {len(collisions)} left for you.")
+        fix(root, notes, args.rename_only)
+        done = f"{renames} notes renamed" if args.rename_only else f"{len(notes)} notes fixed ({renames} renamed)"
+        print(f"Names: {done}, {len(collisions)} left for you.")
     else:
         print(f"Names: {len(notes)} notes to fix ({renames} to rename), {len(collisions)} collisions."
               + (" Run with --fix to apply." if notes else ""))
