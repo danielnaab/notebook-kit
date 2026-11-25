@@ -1,6 +1,6 @@
 # Changelog
 
-## v2.3.0 - unreleased
+## v2.3.0 - 2026-11-24
 
 Named notes are named by their titles. Obsidian's `[[` autocomplete, quick switcher and link text use the filename
 and `aliases`, never `title`, so a wiki page named `pat-lee.md` autocompletes and links as "pat-lee", and a page
