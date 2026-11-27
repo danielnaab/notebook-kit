@@ -1,12 +1,18 @@
 # Changelog
 
-## Unreleased
+## v2.4.0 - 2026-11-27
 
 ### Added
 
 - **`USING.md`:** the kit's guide for workspaces that pin it: what it ships, which doc to read for which task,
-  and what the workspace owns. tuteur's patterns README links it (tuteur, unreleased); a workspace's `AGENTS.md`
+  and what the workspace owns. tuteur's patterns README links it (tuteur v0.2.0); a workspace's `AGENTS.md`
   can link that README instead of a pointer into each pattern.
+
+### Upgrading
+
+Nothing to change: `USING.md` is new and nothing reads it but tuteur v0.2.0's patterns README. Once the workspace is
+on tuteur v0.2.0, its `AGENTS.md` can link `.patterns/README.md` (or the workspace's patterns folder's README) and
+drop pointers into each pattern that the README's list now covers. Done when `just check` passes.
 
 ## v2.3.0 - 2026-11-24
 

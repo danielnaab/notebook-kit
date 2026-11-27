@@ -37,7 +37,7 @@ still on graft v2.18.0 to v2.22.0 can use this release too: the kit's own files 
    ```sh
    git init -b main && git add -A
    nix run github:danielnaab/tuteur/v0.1.0 -- add --scions .scions https://github.com/danielnaab/knowledge-base-kit@v2.2.2
-   nix run github:danielnaab/tuteur/v0.1.0 -- add https://github.com/danielnaab/notebook-kit@v2.3.0
+   nix run github:danielnaab/tuteur/v0.2.0 -- add https://github.com/danielnaab/notebook-kit@v2.4.0
    git commit -m "Seed the workspace"   # Nix reads the scions at the commits the repository records
    nix flake lock
    cp .scions/notebook-kit/templates/*.md notebook/templates/
