@@ -13,7 +13,7 @@ import? ".scions/notebook-kit/tools/kit.just"
 default:
     @{{just_executable()}} --justfile {{quote(justfile())}} --list
 
-# How kit tools and tuteur run (default: `nix run .#<tool> --` and `nix run .#graft --`, tuteur by graft's app name). For example, with the
+# How kit tools and tuteur run (default: `nix run .#<tool> --` and `nix run .#tuteur --`; override with `kit_run` and `patterns_run`). For example, with the
 # kit's tools package on PATH (it includes just and markdownlint-cli2), run them directly:
 # kit_run := "{}"
 

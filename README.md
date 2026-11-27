@@ -17,7 +17,7 @@ place, and copies a small `seed/` once.
 | [templates/](templates/) | Canonical daily, session, wiki, and task-record note templates. |
 | [skills/](skills/) | Generic agent skills `notebook-start` and `notebook-wrap`. |
 | [tools/](tools/) | `check-tasks`, `check-kb`, `check-templates`, `check-obsidian`, `upgrade-obsidian`, `index`, `move`, `names`, `convert` (the tools `nb-index`, `nb-move`, `nb-names`, `nb-convert`), a pre-commit hook, and the `just` menu `kit.just`. |
-| [graft.nix](graft.nix) | What a workspace that pins the kit gets in its flake ([tuteur](https://github.com/danielnaab/tuteur) v0.1.0, or graft v2.13.0 and later): the tools and an app for each, the pinned Obsidian plugins, the task check. Its settings are in `notebook-kit.yaml`. |
+| [pattern.nix](pattern.nix) | What a workspace that pins the kit gets in its flake ([tuteur](https://github.com/danielnaab/tuteur) v0.2.1 or later): the tools and an app for each, the pinned Obsidian plugins, the task check. Its settings are in `notebook-kit.yaml`. |
 | [seed/](seed/common/) | Files a workspace copies once and then owns. |
 | [LICENSE](LICENSE) | CC0 1.0 Universal. |
 | [tests/](tests/) | Tool tests and a test that builds a workspace from the seed and runs every check. |

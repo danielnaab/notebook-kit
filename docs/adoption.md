@@ -9,11 +9,11 @@ scion (a git submodule that [tuteur](https://github.com/danielnaab/tuteur) pins)
 
 ## Start a workspace
 
-This needs [tuteur](https://github.com/danielnaab/tuteur) v0.1.0 (graft's successor), Nix 2.27 or later, and git.
+This needs [tuteur](https://github.com/danielnaab/tuteur) v0.2.1 or later (graft's successor), Nix 2.27 or later, and git.
 The flake input keeps graft's name, `graft`, which every tuteur 0.x reads. Where agents or the kit's commands run
 under [pot](https://github.com/danielnaab/pot), add `inputs.pot` beside it (tuteur's
 [move from graft](https://github.com/danielnaab/tuteur/blob/v0.1.0/docs/guides/move-from-graft.md) guide). A workspace
-still on graft v2.18.0 to v2.22.0 can use this release too: the kit's own files read both.
+on graft, or on tuteur v0.2.0 or earlier, takes tuteur v0.2.1 first: this release's provider file is `pattern.nix`.
 
 1. Create the repository. The seed includes an `.envrc` for direnv (`use flake`); the dev shell has
    [just](https://just.systems) and the kit's tools. Without direnv, run `nix develop`, or put `just` on `PATH`
@@ -36,8 +36,8 @@ still on graft v2.18.0 to v2.22.0 can use this release too: the kit's own files 
 
    ```sh
    git init -b main && git add -A
-   nix run github:danielnaab/tuteur/v0.1.0 -- add --scions .scions https://github.com/danielnaab/knowledge-base-kit@v2.2.2
-   nix run github:danielnaab/tuteur/v0.2.0 -- add https://github.com/danielnaab/notebook-kit@v2.4.0
+   nix run github:danielnaab/tuteur/v0.2.1 -- add --dir .scions https://github.com/danielnaab/knowledge-base-kit@v3.0.0
+   nix run github:danielnaab/tuteur/v0.2.1 -- add --dir .scions https://github.com/danielnaab/notebook-kit@v3.0.0
    git commit -m "Seed the workspace"   # Nix reads the scions at the commits the repository records
    nix flake lock
    cp .scions/notebook-kit/templates/*.md notebook/templates/
@@ -61,7 +61,7 @@ a recipe's body, `@{{just_executable()}} --justfile {{quote(justfile())}} RECIPE
 | --- | --- |
 | Conventions | Links into `.scions/notebook-kit/docs/`; the local `docs/conventions.md` states only local rules. |
 | Agent skills | `.pi/settings.json` lists `../.scions/notebook-kit/skills` under `skills`. |
-| Tools and flake wiring | The kit's [`graft.nix`](../graft.nix): tuteur's `mkFlake` puts the tools in `packages.<system>.tools` (and the dev shell) and an app per tool: `check-kb`, `check-tasks`, `check-templates`, `check-obsidian`, `upgrade-obsidian`, `nb-index`, `nb-move`, `nb-names`, and `nb-convert` (the v0.2 upgrade), plus `just` and `markdownlint-cli2`; `packages.<system>.obsidian-plugins`; and the task check `checks.<system>.notebook-kit-tasks` when the flake's source has a `notebook-kit.yaml`. `flake.nix` names no kit. |
+| Tools and flake wiring | The kit's [`pattern.nix`](../pattern.nix): tuteur's `mkFlake` puts the tools in `packages.<system>.tools` (and the dev shell) and an app per tool: `check-kb`, `check-tasks`, `check-templates`, `check-obsidian`, `upgrade-obsidian`, `nb-index`, `nb-move`, `nb-names`, and `nb-convert` (the v0.2 upgrade), plus `just` and `markdownlint-cli2`; `packages.<system>.obsidian-plugins`; and the task check `checks.<system>.notebook-kit-tasks` when the flake's source has a `notebook-kit.yaml`. `flake.nix` names no kit. |
 | Settings | `notebook-kit.yaml` at the top, read when a tool runs ([workspace settings](#workspace-settings)). |
 | Operations menu | The seeded `justfile` imports `tools/kit.just` from the scion ([run operations with just](#run-operations-with-just)). |
 | Hook | The seeded `.githooks/pre-commit` wrapper runs the kit's hook; `core.hooksPath` is `.githooks`. |
@@ -94,7 +94,7 @@ upgrade. `just` lists it by group:
 
 | Group | Recipes |
 | --- | --- |
-| `check` | `check` (graft-check, check-kb, check-tasks, `index --check`, check-obsidian, then `check-local`), `graft-check`, `check-kb`, `check-tasks`, `check-templates`, `check-obsidian` |
+| `check` | `check` (patterns-check, check-kb, check-tasks, `index --check`, check-obsidian, then `check-local`), `patterns-check` (alias `graft-check`), `check-kb`, `check-tasks`, `check-templates`, `check-obsidian` |
 | `notes` | `index`, `move OLD NEW` |
 | `deps` | `outdated`, `changelog [NAMES]`, `upgrade [TARGETS]`, `migrate`, `sync` (tuteur with no arguments) |
 | `migrations` | `upgrade-obsidian`, `convert` |
@@ -103,7 +103,7 @@ Arguments pass straight through, without Nix's `--`: `just index --check`, `just
 Recipes run from the workspace root wherever `just` is called, so paths are repository-relative.
 
 Underneath, a kit tool runs as `nix run .#TOOL -- ARGS` (`just index` runs the tool `nb-index`) and tuteur as
-`nix run .#graft -- ARGS` (graft's app name, which tuteur 0.1.x keeps); those forms still work. Local recipes
+`nix run .#tuteur -- ARGS`. Local recipes
 go in the `justfile` below the import. A comment line directly above a recipe is its description in the list,
 and `[group('...')]` files it.
 
@@ -123,17 +123,17 @@ The same setting lets a workspace replace any kit recipe; keep its name and mean
 ### Override how tools run
 
 Two variables decide how recipes run tools. `kit_run` is a command template in which `{}` becomes the tool's
-name, followed by the recipe's arguments; `graft_run` is the command that tuteur's subcommand and arguments follow (graft's name, kept while workspaces
-on graft share the recipes).
+name, followed by the recipe's arguments; `patterns_run` is the command that tuteur's subcommand and arguments
+follow. Its name before v3.0.0, `graft_run`, is still read: a workspace that sets `graft_run` keeps working.
 Set them in the workspace `justfile` (the seed sets `allow-duplicate-variables`, so the workspace's definition
-wins wherever it appears), or for one shell with the `KIT_RUN` and `GRAFT_RUN` environment variables, which the
+wins wherever it appears), or for one shell with the `KIT_RUN` and `PATTERNS_RUN` environment variables, which the
 kit's defaults read. Examples, one per line:
 
 ```just
 kit_run := "{}"                             # the kit's tools are on PATH (the dev shell, or packages.tools)
 kit_run := ".local/tools/bin/{}"            # a prebuilt bin directory
 kit_run := "nix run path:nix/workspace#{} --"   # a flake in a subdirectory (content kept out of the store)
-graft_run := "nix run path:nix/workspace#graft --"         # tuteur from that flake
+patterns_run := "nix run path:nix/workspace#tuteur --"     # tuteur from that flake
 ```
 
 The pre-commit hook runs `just check-kb` when the workspace has a `justfile` and `just` is on `PATH`, so it
@@ -180,17 +180,17 @@ justfile                   names the path: flake and the scions under it
 In `nix/workspace/flake.nix`:
 
 ```nix
-  inputs.graft.url = "github:danielnaab/tuteur/v0.1.0";
+  inputs.graft.url = "github:danielnaab/tuteur/v0.2.1";
   outputs = inputs: inputs.graft.lib.mkFlake { inherit inputs; dir = ".scions"; };
 ```
 
-Add the scions there: `nix run github:danielnaab/tuteur/v0.1.0 -- add --scions nix/workspace/.scions URL@TAG`.
+Add the scions there: `nix run github:danielnaab/tuteur/v0.2.1 -- add --dir nix/workspace/.scions URL@TAG`.
 In the `justfile`:
 
 ```just
 import? "nix/workspace/.scions/notebook-kit/tools/kit.just"
 kit_run := "nix run path:nix/workspace#{} --"
-graft_run := "nix run path:nix/workspace#graft --"
+patterns_run := "nix run path:nix/workspace#tuteur --"
 ```
 
 and point `.githooks/pre-commit`, `.pi/settings.json`, `knowledge-base.yaml`'s imports, and links at

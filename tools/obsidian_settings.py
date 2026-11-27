@@ -20,7 +20,7 @@ SEED_GITIGNORE = KIT / "seed/common/.gitignore"
 PINS = KIT / "docs/obsidian-plugins.json"
 DEFAULT_VAULT = "notebook"
 # The pinned release assets, one folder per plugin id, which the kit's Nix wiring fetches and checks against PINS
-# (graft.nix). Unset when a tool runs outside it.
+# (pattern.nix). Unset when a tool runs outside it.
 PLUGIN_ASSETS_ENV = "OBSIDIAN_PLUGIN_ASSETS"
 # The CSS snippet rendered from `obsidian.identity` in notebook-kit.yaml: stripe, optional label, and theme-aware
 # accents. A snippet with an earlier header is the kit's too.

@@ -1,5 +1,38 @@
 # Changelog
 
+## v3.0.0 - 2026-11-27
+
+A breaking version: the provider file is `pattern.nix`, tuteur's name for it from v0.2.1, in place of graft's
+`graft.nix`, so a workspace needs tuteur v0.2.1 or later. The `just` menu's tuteur names lose graft's, and the old
+ones are still read.
+
+### Changed
+
+- **`graft.nix` is now `pattern.nix`**, and its arguments `scion` and `scions` are `pattern` and `patterns`
+  ([provider/3](https://github.com/danielnaab/tuteur/blob/v0.2.1/docs/reference/provider.md)). What a workspace
+  gets is unchanged: the same tools, apps, Obsidian plugins and task check.
+- **`patterns_run`** is how `tools/kit.just` runs tuteur, default `nix run .#tuteur --` (was `graft_run`, default
+  `nix run .#graft --`, an app tuteur 0.3.0 drops). A workspace's `graft_run` or `GRAFT_RUN` is still read when it
+  sets no `patterns_run` or `PATTERNS_RUN`.
+- **`just patterns-check`** is the tuteur check that `just check` runs (was `graft-check`, kept as an alias).
+- The seed's `flake.nix`, the kit's own flake and the adoption guide pin tuteur v0.2.1; the guide adds the kit and
+  knowledge-base-kit with `--dir` (graft's `--scions` goes in tuteur 0.3.0), at notebook-kit v3.0.0 and
+  knowledge-base-kit v3.0.0.
+
+### Upgrading
+
+1. Take tuteur v0.2.1 or later first, in its own commit if you like: `just upgrade` takes it (a patch), or the
+   weekly job does. tuteur v0.2.0 and graft read only `tuteur.nix` or `graft.nix`: with this version they would
+   leave the kit's tools out.
+2. Take this version by name: `just upgrade notebook-kit@v3.0.0`.
+3. In the workspace `justfile`, rename `graft_run` to `patterns_run`, and point it at tuteur's app name if it named
+   graft's: `nix run path:DIR#graft --` becomes `nix run path:DIR#tuteur --`; `graft` on `PATH` becomes `tuteur`.
+   Search: `grep -n 'graft_run\|GRAFT_RUN\|graft-check' justfile .envrc AGENTS.md docs/`. Optional now (the old
+   names still work), and needed before tuteur 0.3.0 for a value that names graft's app.
+4. Replace `graft-check` with `patterns-check` where the workspace calls it (scripts, CI, docs). Optional: the alias
+   stays.
+5. Done when `just check` passes and `just --show patterns-check` runs tuteur.
+
 ## v2.4.0 - 2026-11-27
 
 ### Added

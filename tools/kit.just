@@ -1,7 +1,7 @@
 # notebook-kit operations menu. A workspace's justfile imports it in place (see seed/common/justfile,
 # whose first recipe, `default`, lists this menu: just runs the root justfile's first recipe, never an imported one):
 #
-#   set allow-duplicate-variables   # lets the workspace override kit_run and graft_run below
+#   set allow-duplicate-variables   # lets the workspace override kit_run and patterns_run below
 #   set allow-duplicate-recipes     # lets the workspace define check-local (and override any recipe)
 #   import? ".scions/notebook-kit/tools/kit.just"
 #
@@ -18,23 +18,28 @@
 # "{}" (tools on PATH), ".local/tools/bin/{}", or "nix run path:nix/tools#{} --".
 kit_run := env("KIT_RUN", "nix run .#{} --")
 
-# How graft runs; its subcommand and arguments follow. Override with GRAFT_RUN or `graft_run := "..."`.
-graft_run := env("GRAFT_RUN", "nix run .#graft --")
+# How tuteur runs; its subcommand and arguments follow. Override with PATTERNS_RUN or `patterns_run := "..."`.
+# graft_run and GRAFT_RUN, the names before v3.0.0, are still read: a workspace that overrides graft_run keeps working.
+graft_run := env("GRAFT_RUN", "nix run .#tuteur --")
+patterns_run := env("PATTERNS_RUN", graft_run)
 
 # Run every kit check, then the workspace's check-local
 [group('check')]
-check: graft-check check-kb check-tasks (index "--check") check-obsidian check-local
+check: patterns-check check-kb check-tasks (index "--check") check-obsidian check-local
     @echo "check: all checks passed"
 
 # A workspace defines check-local (with `set allow-duplicate-recipes`) to add its own checks to `check`
 [private]
 check-local:
 
-# Check that every scion is clean and at a release tag, and graft's workflows are current
+# Check that every pattern is clean and at a release tag, and tuteur's workflows are current
 [group('check')]
 [positional-arguments]
-graft-check *args:
-    {{graft_run}} check "$@"
+patterns-check *args:
+    {{patterns_run}} check "$@"
+
+# graft-check, the recipe's name before v3.0.0
+alias graft-check := patterns-check
 
 # Check links, lifecycle status, and Sources with knowledge-base-kit's checker
 [group('check')]
@@ -82,20 +87,20 @@ names *args:
 [group('deps')]
 [positional-arguments]
 outdated *args:
-    {{graft_run}} outdated "$@"
+    {{patterns_run}} outdated "$@"
 
 # Show scion changelogs between the pinned and newest tags (all scions, or the ones named)
 [group('deps')]
 [positional-arguments]
 changelog *names:
-    {{graft_run}} changelog "$@"
+    {{patterns_run}} changelog "$@"
 
 # Move scions to newer release tags (e.g. notebook-kit@vX.Y.Z), apply the kit's Obsidian settings and plugins
 # (upgrade-obsidian), then list the next steps
 [group('deps')]
 [positional-arguments]
 upgrade *targets:
-    {{graft_run}} upgrade "$@"
+    {{patterns_run}} upgrade "$@"
     @echo
     @# A fresh just, so tools that resolve kit_run once (a built tools path) use the new pin.
     @{{just_executable()}} --justfile {{quote(justfile())}} upgrade-obsidian \
@@ -105,19 +110,19 @@ upgrade *targets:
     @echo "  1. Read each upgraded scion's CHANGELOG.md, its Upgrading sections in particular: just changelog"
     @echo "  2. Brief an agent or yourself on what moved:                                       just migrate"
     @echo "  3. Apply the Upgrading steps, then verify:                                          just check"
-    @echo "  4. Commit the moved scions, flake.nix and flake.lock (graft's pin), and the workspace changes together."
+    @echo "  4. Commit the moved scions, flake.nix and flake.lock (tuteur's pin), and the workspace changes together."
 
 # Print a migration brief for an upgrade: what moved, the changelog text, the provider's changes
 [group('deps')]
 [positional-arguments]
 migrate *args:
-    {{graft_run}} migrate "$@"
+    {{patterns_run}} migrate "$@"
 
-# Fill empty scions (git submodule update --init), and write graft's scions README and workflows
+# Fill empty patterns (git submodule update --init), and write tuteur's patterns README and workflows
 [group('deps')]
 [positional-arguments]
 sync *args:
-    {{graft_run}} "$@"
+    {{patterns_run}} "$@"
 
 # Merge the kit's Obsidian settings into the vault, keeping local changes, and install its pinned plugins
 # (quit Obsidian first; --dry-run, --no-plugins)

@@ -2,10 +2,10 @@
   description = "<<WORKSPACE_NAME>> work-memory workspace";
 
   # The scions in .scions/ (notebook-kit, knowledge-base-kit) are git submodules; each wires its own tools, apps
-  # and checks into this flake (its graft.nix), through tuteur. Settings for the kit's tools are in notebook-kit.yaml.
+  # and checks into this flake (its pattern.nix), through tuteur. Settings for the kit's tools are in notebook-kit.yaml.
   # The input keeps graft's name, which every tuteur 0.x reads.
   inputs.self.submodules = true;
-  inputs.graft.url = "github:danielnaab/tuteur/v0.1.0";
+  inputs.graft.url = "github:danielnaab/tuteur/v0.2.1";
 
   outputs = inputs: inputs.graft.lib.mkFlake {
     inherit inputs;

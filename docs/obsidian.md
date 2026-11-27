@@ -61,7 +61,7 @@ SHA-256 of each release asset.
   plugin reaches every workspace with its settings. It installs only the pinned plugins the vault's
   `community-plugins.json` lists: a workspace whose boundaries rule a plugin out removes it there, and the kit's
   later upgrades keep that removal. `--no-plugins` merges settings only.
-- The releases come from the kit's Nix wiring (`packages.obsidian-plugins` from the kit's [`graft.nix`](../graft.nix)), which
+- The releases come from the kit's Nix wiring (`packages.obsidian-plugins` from the kit's [`pattern.nix`](../pattern.nix)), which
   downloads each pinned asset and checks its SHA-256; the tool checks them again before copying. It writes
   `main.js`, `manifest.json`, and `styles.css` (where the release has one) and leaves `data.json` alone. A plugin
   that already matches its pin, including the in-app installer's copy (see below), is left as it is.

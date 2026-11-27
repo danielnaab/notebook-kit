@@ -1,5 +1,5 @@
-# What a workspace that grafts notebook-kit gets (graft v2.13.0 or later reads this file). It needs
-# knowledge-base-kit grafted beside it: the checker the kit's tools run.
+# What a workspace that pins notebook-kit gets: tuteur's mkFlake reads this file (provider/3; tuteur v0.2.1 or later
+# reads it by this name). It needs knowledge-base-kit pinned beside it: the checker the kit's tools run.
 #
 # tools (packages.<system>.tools, on PATH in the dev shell), each also an app (`nix run .#check-kb`):
 #   check-kb, check-tasks, check-templates, check-obsidian, upgrade-obsidian, nb-index, nb-move, nb-names, nb-convert,
@@ -11,10 +11,10 @@
 #
 # A workspace's settings (no task records, Obsidian deviations and identity) are not Nix arguments: they are in
 # notebook-kit.yaml at the workspace's top, read when a tool runs (tools/kit_settings.py, docs/adoption.md).
-{ pkgs, lib, scion, scions, consumer, ... }:
+{ pkgs, lib, pattern, patterns, consumer, ... }:
 let
   python = pkgs.python3.withPackages (ps: [ ps.pyyaml ]);
-  kbSrc = "${scions.knowledge-base-kit}/src";
+  kbSrc = "${patterns.knowledge-base-kit}/src";
 
   # The pinned community-plugin releases (docs/obsidian-plugins.json), fetched and checked against their hashes:
   # <id>/<asset> for each, which upgrade-obsidian installs into the vault.
@@ -53,12 +53,12 @@ let
         export OBSIDIAN_PLUGIN_ASSETS=${obsidianPlugins}
       '' + ''
         export PYTHONDONTWRITEBYTECODE=1
-        exec python ${scion}/tools/${lib.elemAt spec 0} "$@"
+        exec python ${pattern}/tools/${lib.elemAt spec 0} "$@"
       '';
       meta.description = lib.elemAt spec 1;
     }) specs;
   # The pre-commit hook command (kit 1.2's commands.<name>.hook): markdownlint on the staged Markdown, then check-kb,
-  # each by its store path (no just, no nix develop), so one commit is one sandboxed start under graft's pot.
+  # each by its store path (no just, no nix develop), so one commit is one sandboxed start under pot.
   preCommit = pkgs.writeShellApplication {
     name = "nb-pre-commit";
     runtimeInputs = [ pkgs.git pkgs.gnused pkgs.markdownlint-cli2 scripts.check-kb ];
@@ -128,7 +128,7 @@ in
       nativeBuildInputs = [ python ];
       PYTHONDONTWRITEBYTECODE = "1";
     } ''
-      python ${scion}/tools/check-tasks.py --root ${consumer}
+      python ${pattern}/tools/check-tasks.py --root ${consumer}
       touch $out
     '';
   };

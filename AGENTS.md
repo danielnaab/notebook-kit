@@ -1,7 +1,7 @@
 # notebook-kit — agent entrypoint
 
 Public, generic conventions, tools, skills, and a copy-once seed for Markdown work-memory workspaces. Workspaces
-pin it as a graft scion. Read [README.md](README.md), then [KB configuration](knowledge-base.yaml).
+pin it as a tuteur pattern. Read [README.md](README.md), then [KB configuration](knowledge-base.yaml).
 
 ## Rules for changing this repo
 
@@ -18,11 +18,11 @@ pin it as a graft scion. Read [README.md](README.md), then [KB configuration](kn
   `just upgrade-obsidian`, so test it against the previous seed. Tag releases; stay `0.x` until two workspaces
   run it stably.
 - **The `just` menu is an interface.** Workspaces and their agents call `tools/kit.just` recipes by name; renaming
-  or removing a recipe, or changing `kit_run`/`graft_run`, is a breaking change with Upgrading steps.
+  or removing a recipe, or changing `kit_run`/`patterns_run` (or the old `graft_run`), is a breaking change with Upgrading steps.
 - **Docs follow knowledge-base-kit:** `status` frontmatter, `## Sources`, real relative links. Keep policy-style text short.
 - **Verify:** `nix flake check` runs the tests (tool tests, a workspace built from `seed/`, and the hygiene scan);
   `nix run .#check-kb` checks links, status, and Sources here. Tests need no network.
 - `.scions/` holds git submodules at release tags (knowledge-base-kit). Ask before editing a scion: a fix belongs
   in the provider (a branch in the scion, released); don't commit a scion off a release tag. Upgrade with
-  `nix run .#graft upgrade`. The kit's own tools come from [graft.nix](graft.nix), as every workspace gets them.
+  `nix run .#tuteur upgrade`. The kit's own tools come from [pattern.nix](pattern.nix), as every workspace gets them.
 - Do not push, tag, or publish without the owner's authorization.

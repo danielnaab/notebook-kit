@@ -38,7 +38,7 @@ def build_workspace(root: Path) -> None:
     scion.mkdir(parents=True)
     for name in EXPORTED:
         shutil.copytree(KIT / name, scion / name)
-    for name in ("README.md", "CHANGELOG.md", "graft.nix"):
+    for name in ("README.md", "CHANGELOG.md", "pattern.nix"):
         if (KIT / name).exists():
             shutil.copy2(KIT / name, scion / name)
     shutil.copytree(KIT / ".scions" / "knowledge-base-kit", root / ".scions" / "knowledge-base-kit",
@@ -85,7 +85,7 @@ class SeedTest(unittest.TestCase):
         self.assertIn(pin, (KIT / "seed/common/flake.nix").read_text())
 
     def test_flake_names_no_provider(self):
-        # The scions are git submodules; each wires itself (graft.nix), so the flake has no provider inputs.
+        # The scions are git submodules; each wires itself (pattern.nix), so the flake has no provider inputs.
         flake = (self.root / "flake.nix").read_text()
         self.assertIn("inputs.self.submodules = true;", flake)
         self.assertIn('dir = ".scions";', flake)
@@ -213,7 +213,7 @@ class SeedTest(unittest.TestCase):
 
 JUST = shutil.which("just")
 KIT_RECIPES = {
-    "check": ["check", "graft-check", "check-kb", "check-tasks", "check-templates", "check-obsidian"],
+    "check": ["check", "patterns-check", "check-kb", "check-tasks", "check-templates", "check-obsidian"],
     "notes": ["index", "move", "names"],
     "deps": ["outdated", "changelog", "upgrade", "migrate", "sync"],
     "migrations": ["convert", "upgrade-obsidian"],
@@ -234,11 +234,11 @@ class JustMenuTest(unittest.TestCase):
         self.stubs.mkdir()
         self.log = self.root / ".calls"
         for name in ("check-kb", "check-tasks", "check-templates", "check-obsidian", "nb-index", "nb-move", "nb-names",
-                     "nb-convert", "upgrade-obsidian", "graft"):
+                     "nb-convert", "upgrade-obsidian", "tuteur"):
             stub = self.stubs / name
             stub.write_text(f'#!/bin/sh\n{{ printf {name}; for a; do printf "\\037%s" "$a"; done; echo; }} >> "{self.log}"\n')
             stub.chmod(0o755)
-        self.env = {**os.environ, "KIT_RUN": f"{self.stubs}/{{}}", "GRAFT_RUN": str(self.stubs / "graft")}
+        self.env = {**os.environ, "KIT_RUN": f"{self.stubs}/{{}}", "PATTERNS_RUN": str(self.stubs / "tuteur")}
 
     def just(self, *args, cwd=None, env=None):
         return subprocess.run([JUST, *args], capture_output=True, text=True, cwd=cwd or self.root,
@@ -267,17 +267,28 @@ class JustMenuTest(unittest.TestCase):
                 proc = self.just("--show", recipe)
                 self.assertEqual(0, proc.returncode, proc.stderr)
 
-    def test_default_runs_tools_and_graft_through_the_root_flake(self):
-        env = {k: v for k, v in os.environ.items() if k not in ("KIT_RUN", "GRAFT_RUN")}
+    def test_default_runs_tools_and_tuteur_through_the_root_flake(self):
+        env = {k: v for k, v in os.environ.items() if k not in ("KIT_RUN", "PATTERNS_RUN", "GRAFT_RUN")}
         proc = self.just("--dry-run", "check-kb", "--root", ".", env=env)
         self.assertIn('nix run .#check-kb -- "$@"', proc.stderr)
         proc = self.just("--dry-run", "upgrade", "x@v1", env=env)
-        self.assertIn('nix run .#graft -- upgrade "$@"', proc.stderr)
+        self.assertIn('nix run .#tuteur -- upgrade "$@"', proc.stderr)
+
+    def test_graft_names_still_work(self):
+        # graft_run, GRAFT_RUN and the recipe graft-check, the names before v3.0.0
+        env = {k: v for k, v in os.environ.items() if k not in ("KIT_RUN", "PATTERNS_RUN", "GRAFT_RUN")}
+        proc = self.just("--dry-run", "outdated", env={**env, "GRAFT_RUN": "old-env"})
+        self.assertIn('old-env outdated "$@"', proc.stderr)
+        with (self.root / "justfile").open("a") as justfile:
+            justfile.write(f'\ngraft_run := "{self.stubs}/tuteur"\n')
+        proc = self.just("graft-check", env=env)
+        self.assertEqual(0, proc.returncode, proc.stderr)
+        self.assertEqual([["tuteur", "check"]], self.calls())
 
     def test_check_runs_every_kit_check(self):
         proc = self.just("check")
         self.assertEqual(0, proc.returncode, proc.stderr)
-        self.assertEqual([["graft", "check"], ["check-kb"], ["check-tasks"], ["nb-index", "--check"],
+        self.assertEqual([["tuteur", "check"], ["check-kb"], ["check-tasks"], ["nb-index", "--check"],
                           ["check-obsidian"]], self.calls())
 
     def test_an_empty_scion_still_lists_the_workspace_recipes(self):
@@ -297,44 +308,44 @@ class JustMenuTest(unittest.TestCase):
         self.just("names", "notebook/wiki/a b.md", "--fix")
         self.just("changelog", "notebook-kit")
         self.assertEqual([["nb-move", "notebook/a b.md", "notebook/c.md", "--dry-run"], ["nb-index", "--check"],
-                          ["nb-names", "notebook/wiki/a b.md", "--fix"], ["graft", "changelog", "notebook-kit"]],
+                          ["nb-names", "notebook/wiki/a b.md", "--fix"], ["tuteur", "changelog", "notebook-kit"]],
                          self.calls())
 
-    def test_sync_runs_graft_bare_and_upgrade_applies_obsidian_and_lists_next_steps(self):
+    def test_sync_runs_tuteur_bare_and_upgrade_applies_obsidian_and_lists_next_steps(self):
         self.just("sync")
         proc = self.just("upgrade", "notebook-kit@v9.9.9")
         self.assertEqual(0, proc.returncode, proc.stderr)
-        self.assertEqual([["graft"], ["graft", "upgrade", "notebook-kit@v9.9.9"], ["upgrade-obsidian"]],
+        self.assertEqual([["tuteur"], ["tuteur", "upgrade", "notebook-kit@v9.9.9"], ["upgrade-obsidian"]],
                          self.calls())
         for step in ("just changelog", "just migrate", "just check", "Commit"):
             self.assertIn(step, proc.stdout)
 
     def test_workspace_overrides_how_tools_run_and_extends_check(self):
-        env = {k: v for k, v in os.environ.items() if k not in ("KIT_RUN", "GRAFT_RUN")}
+        env = {k: v for k, v in os.environ.items() if k not in ("KIT_RUN", "PATTERNS_RUN", "GRAFT_RUN")}
         with (self.root / "justfile").open("a") as justfile:
-            justfile.write(f'\nkit_run := "{self.stubs}/{{}}"\ngraft_run := "{self.stubs}/graft"\n'
+            justfile.write(f'\nkit_run := "{self.stubs}/{{}}"\npatterns_run := "{self.stubs}/tuteur"\n'
                            f'\ncheck-local:\n    @echo local >> "{self.log}"\n')
         proc = self.just("check", env=env)
         self.assertEqual(0, proc.returncode, proc.stderr)
-        self.assertEqual([["graft", "check"], ["check-kb"], ["check-tasks"], ["nb-index", "--check"],
+        self.assertEqual([["tuteur", "check"], ["check-kb"], ["check-tasks"], ["nb-index", "--check"],
                           ["check-obsidian"], ["local"]], self.calls())
         self.just("outdated", env=env)
-        self.assertEqual(["graft", "outdated"], self.calls()[-1])
+        self.assertEqual(["tuteur", "outdated"], self.calls()[-1])
 
     def test_check_passes_with_the_real_tools(self):
         kbi = os.environ.get("KBI_SRC")
         if not kbi:
             self.skipTest("KBI_SRC not set")
         tools = self.root / ".scions/notebook-kit/tools"
-        # each tool by its name in graft.nix, as the tools package has it
+        # each tool by its name in pattern.nix, as the tools package has it
         bin_ = self.root / ".bin"
         bin_.mkdir()
         for name, script in (("check-kb", "check-kb"), ("check-tasks", "check-tasks"), ("nb-index", "index"),
                              ("check-obsidian", "check-obsidian")):
             (bin_ / name).write_text(f'#!/bin/sh\nexec "{sys.executable}" "{tools}/{script}.py" "$@"\n')
             (bin_ / name).chmod(0o755)
-        # graft check needs the workspace's flake; its own tests cover it
-        env = {**os.environ, "KIT_RUN": f"{bin_}/{{}}", "GRAFT_RUN": "true", "PYTHONDONTWRITEBYTECODE": "1"}
+        # tuteur check needs the workspace's flake; its own tests cover it
+        env = {**os.environ, "KIT_RUN": f"{bin_}/{{}}", "PATTERNS_RUN": "true", "PYTHONDONTWRITEBYTECODE": "1"}
         proc = self.just("check", env=env)
         self.assertEqual(0, proc.returncode, proc.stdout + proc.stderr)
         self.assertIn("all checks passed", proc.stdout)
