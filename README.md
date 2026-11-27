@@ -12,6 +12,7 @@ place, and copies a small `seed/` once.
 
 | Path | Purpose |
 | --- | --- |
+| [USING.md](USING.md) | The guide for a workspace's agents: what the kit ships and which doc to read when. |
 | [docs/](docs/README.md) | The conventions: layout, workflow, tasks, conformance, Obsidian, adoption; pinned Obsidian plugins. |
 | [templates/](templates/) | Canonical daily, session, wiki, and task-record note templates. |
 | [skills/](skills/) | Generic agent skills `notebook-start` and `notebook-wrap`. |

@@ -1,5 +1,13 @@
 # Changelog
 
+## Unreleased
+
+### Added
+
+- **`USING.md`:** the kit's guide for workspaces that pin it: what it ships, which doc to read for which task,
+  and what the workspace owns. tuteur's patterns README links it (tuteur, unreleased); a workspace's `AGENTS.md`
+  can link that README instead of a pointer into each pattern.
+
 ## v2.3.0 - 2026-11-24
 
 Named notes are named by their titles. Obsidian's `[[` autocomplete, quick switcher and link text use the filename
