@@ -9,7 +9,7 @@ scion (a git submodule that [tuteur](https://github.com/danielnaab/tuteur) pins)
 
 ## Start a workspace
 
-This needs [tuteur](https://github.com/danielnaab/tuteur) v0.2.1 or later (graft's successor), Nix 2.27 or later, and git.
+This needs [tuteur](https://github.com/danielnaab/tuteur) v0.2.1 or later (the seed pins v0.3.0) (graft's successor), Nix 2.27 or later, and git.
 The flake input keeps graft's name, `graft`, which every tuteur 0.x reads. Where agents or the kit's commands run
 under [pot](https://github.com/danielnaab/pot), add `inputs.pot` beside it (tuteur's
 [move from graft](https://github.com/danielnaab/tuteur/blob/v0.1.0/docs/guides/move-from-graft.md) guide). A workspace
@@ -36,8 +36,8 @@ on graft, or on tuteur v0.2.0 or earlier, takes tuteur v0.2.1 first: this releas
 
    ```sh
    git init -b main && git add -A
-   nix run github:danielnaab/tuteur/v0.2.1 -- add --dir .scions https://github.com/danielnaab/knowledge-base-kit@v3.0.0
-   nix run github:danielnaab/tuteur/v0.2.1 -- add --dir .scions https://github.com/danielnaab/notebook-kit@v3.0.0
+   nix run github:danielnaab/tuteur/v0.3.0 -- add --dir .scions https://github.com/danielnaab/knowledge-base-kit@v3.0.0
+   nix run github:danielnaab/tuteur/v0.3.0 -- add --dir .scions https://github.com/danielnaab/notebook-kit@v3.0.1
    git commit -m "Seed the workspace"   # Nix reads the scions at the commits the repository records
    nix flake lock
    cp .scions/notebook-kit/templates/*.md notebook/templates/
@@ -180,11 +180,11 @@ justfile                   names the path: flake and the scions under it
 In `nix/workspace/flake.nix`:
 
 ```nix
-  inputs.graft.url = "github:danielnaab/tuteur/v0.2.1";
+  inputs.graft.url = "github:danielnaab/tuteur/v0.3.0";
   outputs = inputs: inputs.graft.lib.mkFlake { inherit inputs; dir = ".scions"; };
 ```
 
-Add the scions there: `nix run github:danielnaab/tuteur/v0.2.1 -- add --dir nix/workspace/.scions URL@TAG`.
+Add the scions there: `nix run github:danielnaab/tuteur/v0.3.0 -- add --dir nix/workspace/.scions URL@TAG`.
 In the `justfile`:
 
 ```just

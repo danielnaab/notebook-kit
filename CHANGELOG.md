@@ -1,5 +1,20 @@
 # Changelog
 
+## v3.0.1 - 2026-11-27
+
+### Changed
+
+- **tuteur v0.3.0** in the seed's `flake.nix`, the kit's own flake and the adoption guide (was v0.2.1). tuteur 0.3.0
+  drops graft's names; the kit already uses tuteur's. The seed keeps its patterns in `.scions/` (`dir = ".scions";`),
+  which tuteur 0.3.0 reads as before.
+- **The kit's own pin of knowledge-base-kit is v3.0.0** (was v2.2.2, which ships only `graft.nix`, which tuteur 0.3.0
+  doesn't read). Workspaces already pin v3.0.0 beside the kit.
+
+### Upgrading
+
+- Nothing to do: the weekly job takes this patch. A workspace takes tuteur v0.3.0 by its own Upgrading steps
+  (`just upgrade graft@v0.3.0`, or `tuteur@v0.3.0` by your input's name).
+
 ## v3.0.0 - 2026-11-27
 
 A breaking version: the provider file is `pattern.nix`, tuteur's name for it from v0.2.1, in place of graft's
