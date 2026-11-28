@@ -1,9 +1,9 @@
 #!/bin/sh
-# Runs the kit's pre-commit hook from its scion (a git submodule); this small wrapper is owned by the workspace.
+# Runs the kit's pre-commit hook from .patterns/notebook-kit (a git submodule); this small wrapper is owned by the workspace.
 # Enable once per clone: git config core.hooksPath .githooks
-hook="$(git rev-parse --show-toplevel)/.scions/notebook-kit/tools/hooks/pre-commit"
+hook="$(git rev-parse --show-toplevel)/.patterns/notebook-kit/tools/hooks/pre-commit"
 if [ ! -f "$hook" ]; then
-  echo "pre-commit: .scions/notebook-kit is empty: run git submodule update --init" >&2
+  echo "pre-commit: .patterns/notebook-kit is empty: run git submodule update --init" >&2
   exit 1
 fi
 exec sh "$hook" "$@"

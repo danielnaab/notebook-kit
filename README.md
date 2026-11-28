@@ -5,7 +5,7 @@ notes that people browse in Obsidian and agents maintain. The notes folder is th
 [OKF](https://github.com/GoogleCloudPlatform/knowledge-catalog/blob/main/okf/SPEC.md) v0.2 bundle. It extracts what proved useful in practice and is
 meant to be shared by several workspaces that evolve together.
 
-A workspace pins this repository as a [tuteur](https://github.com/danielnaab/tuteur) scion, reads most of it in
+A workspace pins this repository as a [tuteur](https://github.com/danielnaab/tuteur) pattern, reads most of it in
 place, and copies a small `seed/` once.
 
 ## What is here
@@ -33,7 +33,7 @@ dependency upgrades ([run operations with just](docs/adoption.md#run-operations-
 
 - **Generic and public.** No context from any one workspace. Boundaries (data, accounts, services) belong to each
   workspace and are never defined here.
-- **Reference over copy.** What a workspace can read in place stays in the scion, so fixes arrive with an upgrade.
+- **Reference over copy.** What a workspace can read in place stays in the pattern, so fixes arrive with an upgrade.
 - **Small seed.** Seeded files are owned by the workspace; changes reach them through the changelog, not a merge tool.
 - **Evidence-driven.** Structure is added for observed, repeated pain, following the
   [knowledge-base-kit](https://github.com/danielnaab/knowledge-base-kit/tree/v2.0.0).
@@ -50,7 +50,7 @@ Requires Nix with flakes. See [AGENTS.md](AGENTS.md) for the rules for changing 
 ## License
 
 [CC0 1.0 Universal](LICENSE): public-domain dedication; use, copy, and adapt freely, with no attribution required.
-The license file is exported with the scion, so every workspace that pins the kit carries it.
+The license file is exported with the pattern, so every workspace that pins the kit carries it.
 
 ## Sources
 

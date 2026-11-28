@@ -1,6 +1,6 @@
 """Build a workspace from seed/ the way docs/adoption.md says, then run every check on it.
 
-Fixtures are synthetic. The scions (git submodules in a real workspace) are simulated by copying the kit's
+Fixtures are synthetic. The patterns (git submodules in a real workspace) are simulated by copying the kit's
 directories and its own grafted knowledge-base-kit, so no network is needed. Its checker comes from KBI_SRC (skipped if unset).
 """
 
@@ -34,20 +34,20 @@ def build_workspace(root: Path) -> None:
     for profile_or_common in ("profiles/generic", "common"):
         shutil.copytree(KIT / "seed" / profile_or_common, root, dirs_exist_ok=True,
                         copy_function=lambda s, d: None if Path(d).exists() else shutil.copy2(s, d))
-    scion = root / ".scions" / "notebook-kit"
-    scion.mkdir(parents=True)
+    pattern = root / ".patterns" / "notebook-kit"
+    pattern.mkdir(parents=True)
     for name in EXPORTED:
-        shutil.copytree(KIT / name, scion / name)
+        shutil.copytree(KIT / name, pattern / name)
     for name in ("README.md", "CHANGELOG.md", "pattern.nix"):
         if (KIT / name).exists():
-            shutil.copy2(KIT / name, scion / name)
-    shutil.copytree(KIT / ".scions" / "knowledge-base-kit", root / ".scions" / "knowledge-base-kit",
+            shutil.copy2(KIT / name, pattern / name)
+    shutil.copytree(KIT / ".patterns" / "knowledge-base-kit", root / ".patterns" / "knowledge-base-kit",
                     ignore=shutil.ignore_patterns(".git"))
-    shutil.copy2(KIT / ".scions" / "README.md", root / ".scions" / "README.md")
-    for template in (scion / "templates").glob("*.md"):
+    shutil.copy2(KIT / ".patterns" / "README.md", root / ".patterns" / "README.md")
+    for template in (pattern / "templates").glob("*.md"):
         shutil.copy2(template, root / "notebook/templates" / template.name)
     for path in root.rglob("*"):
-        if path.is_file() and ".scions" not in path.parts and ".obsidian" not in path.parts:
+        if path.is_file() and ".patterns" not in path.parts and ".obsidian" not in path.parts:
             text = path.read_text()
             if PLACEHOLDER.search(text):
                 path.write_text(PLACEHOLDER.sub(lambda m: VALUES[m.group(1)], text))
@@ -73,7 +73,7 @@ class SeedTest(unittest.TestCase):
 
     def test_no_placeholders_remain_after_filling(self):
         for path in self.root.rglob("*"):
-            if path.is_file() and ".scions" not in path.parts and ".obsidian" not in path.parts:
+            if path.is_file() and ".patterns" not in path.parts and ".obsidian" not in path.parts:
                 self.assertIsNone(PLACEHOLDER.search(path.read_text()), path)
 
     def test_adoption_grafts_the_release_it_ships_in(self):
@@ -85,13 +85,19 @@ class SeedTest(unittest.TestCase):
         self.assertIn(pin, (KIT / "seed/common/flake.nix").read_text())
 
     def test_flake_names_no_provider(self):
-        # The scions are git submodules; each wires itself (pattern.nix), so the flake has no provider inputs.
+        # The patterns are git submodules; each wires itself (pattern.nix), so the flake has no provider inputs.
+        # They are in tuteur's default folder, .patterns/, so the flake names no `dir`.
         flake = (self.root / "flake.nix").read_text()
         self.assertIn("inputs.self.submodules = true;", flake)
-        self.assertIn('dir = ".scions";', flake)
+        self.assertNotIn("dir =", flake)
         self.assertNotIn("flake = false", flake)
         self.assertNotIn("notebook-kit", flake.split("outputs")[1])
         self.assertEqual("use flake\n", (self.root / ".envrc").read_text())
+
+    def test_agents_points_at_the_patterns_index(self):
+        # tuteur writes .patterns/README.md: what each pinned pattern ships and which of its docs to read
+        self.assertIn("](.patterns/README.md)", (self.root / "AGENTS.md").read_text())
+        self.assertTrue((self.root / ".patterns/README.md").is_file())
 
     def test_settings_file_is_seeded_with_the_defaults(self):
         sys.path.insert(0, str(KIT / "tools"))
@@ -145,27 +151,33 @@ class SeedTest(unittest.TestCase):
         subprocess.run(["git", "init", "-q", "-b", "main"], cwd=self.root, check=True)
         proc = subprocess.run([str(wrapper)], cwd=self.root, capture_output=True, text=True)
         self.assertEqual(0, proc.returncode, proc.stdout + proc.stderr)  # no staged Markdown: exits 0
-        # a fresh clone before `git submodule update --init`: the scion is an empty folder
-        shutil.rmtree(self.root / ".scions/notebook-kit")
-        (self.root / ".scions/notebook-kit").mkdir()
+        # a fresh clone before `git submodule update --init`: the pattern is an empty folder
+        shutil.rmtree(self.root / ".patterns/notebook-kit")
+        (self.root / ".patterns/notebook-kit").mkdir()
         proc = subprocess.run([str(wrapper)], cwd=self.root, capture_output=True, text=True)
         self.assertEqual(1, proc.returncode)
         self.assertIn("git submodule update --init", proc.stderr)
 
-    def test_hook_skips_staged_scion_markdown(self):
-        # Explicit paths bypass markdownlint's ignores, so the hook must not pass scion files at all: the scion's
-        # seed links resolve only inside a workspace. The scions directory is the one graft's marker README names.
-        self.assertEqual(["--no-globs", "README.md"], self.staged_lint_args(".scions"))
+    def test_hook_skips_staged_pattern_markdown(self):
+        # Explicit paths bypass markdownlint's ignores, so the hook must not pass pattern files at all: the pattern's
+        # seed links resolve only inside a workspace. The patterns folder is the one tuteur's marker README names.
+        self.assertEqual(["--no-globs", "README.md"], self.staged_lint_args(".patterns"))
 
-    def test_hook_skips_a_scions_directory_under_a_subdirectory_flake(self):
-        shutil.move(self.root / ".scions", self.root / "nix-tools")
-        (self.root / "nix/agent-tools").mkdir(parents=True)
-        shutil.move(self.root / "nix-tools", self.root / "nix/agent-tools/.scions")
-        justfile = self.root / "justfile"
-        justfile.write_text(justfile.read_text().replace('".scions/', '"nix/agent-tools/.scions/'))
-        self.assertEqual(["--no-globs", "README.md"], self.staged_lint_args("nix/agent-tools/.scions"))
+    def test_hook_skips_a_patterns_folder_under_another_name_or_a_subdirectory_flake(self):
+        # a workspace that kept graft's .scions/ (kit v3.0 and earlier), or whose flake sits in a subdirectory
+        for folder in (".scions", "nix/workspace/.patterns", "nix/agent-tools/.scions"):
+            with self.subTest(folder=folder):
+                tmp = tempfile.TemporaryDirectory()
+                self.addCleanup(tmp.cleanup)
+                self.root = Path(tmp.name)
+                build_workspace(self.root)
+                (self.root / folder).parent.mkdir(parents=True, exist_ok=True)
+                shutil.move(self.root / ".patterns", self.root / folder)
+                justfile = self.root / "justfile"
+                justfile.write_text(justfile.read_text().replace('".patterns/', f'"{folder}/'))
+                self.assertEqual(["--no-globs", "README.md"], self.staged_lint_args(folder))
 
-    def staged_lint_args(self, scions):
+    def staged_lint_args(self, patterns):
         hook = self.root / ".hook"
         shutil.copy2(KIT / "tools/hooks/pre-commit", hook)
         stubs = self.root / ".stubs"
@@ -176,7 +188,7 @@ class SeedTest(unittest.TestCase):
         for stub in stubs.iterdir():
             stub.chmod(0o755)
         subprocess.run(["git", "init", "-q", "-b", "main"], cwd=self.root, check=True)
-        subprocess.run(["git", "add", "README.md", f"{scions}/README.md", f"{scions}/notebook-kit/README.md"],
+        subprocess.run(["git", "add", "README.md", f"{patterns}/README.md", f"{patterns}/notebook-kit/README.md"],
                        cwd=self.root, check=True)
         proc = subprocess.run(["sh", str(hook)], cwd=self.root, capture_output=True,
                               text=True, env={**os.environ, "PATH": f"{stubs}{os.pathsep}{os.environ['PATH']}"})
@@ -202,7 +214,7 @@ class SeedTest(unittest.TestCase):
         self.assertFalse(called.exists())
 
     def test_skill_files_are_loadable(self):
-        for skill in (self.root / ".scions/notebook-kit/skills").glob("*/SKILL.md"):
+        for skill in (self.root / ".patterns/notebook-kit/skills").glob("*/SKILL.md"):
             head = skill.read_text().split("---")[1]
             self.assertRegex(head, r"(?m)^name: " + skill.parent.name + r"$")
             self.assertRegex(head, r"(?m)^description: .{40,}")
@@ -222,7 +234,7 @@ KIT_RECIPES = {
 
 @unittest.skipUnless(JUST, "just not on PATH")
 class JustMenuTest(unittest.TestCase):
-    """The seeded justfile imports the kit's menu from the scion; recipes pass arguments through intact."""
+    """The seeded justfile imports the kit's menu from the pattern; recipes pass arguments through intact."""
 
     def setUp(self):
         tmp = tempfile.TemporaryDirectory()
@@ -291,10 +303,10 @@ class JustMenuTest(unittest.TestCase):
         self.assertEqual([["tuteur", "check"], ["check-kb"], ["check-tasks"], ["nb-index", "--check"],
                           ["check-obsidian"]], self.calls())
 
-    def test_an_empty_scion_still_lists_the_workspace_recipes(self):
+    def test_an_empty_pattern_still_lists_the_workspace_recipes(self):
         # a fresh clone before `git submodule update --init`: `import?` skips the kit's menu
-        shutil.rmtree(self.root / ".scions/notebook-kit")
-        (self.root / ".scions/notebook-kit").mkdir()
+        shutil.rmtree(self.root / ".patterns/notebook-kit")
+        (self.root / ".patterns/notebook-kit").mkdir()
         with (self.root / "justfile").open("a") as justfile:
             justfile.write("\n# A workspace recipe\nmine:\n    @echo mine\n")
         proc = self.just()
@@ -336,7 +348,7 @@ class JustMenuTest(unittest.TestCase):
         kbi = os.environ.get("KBI_SRC")
         if not kbi:
             self.skipTest("KBI_SRC not set")
-        tools = self.root / ".scions/notebook-kit/tools"
+        tools = self.root / ".patterns/notebook-kit/tools"
         # each tool by its name in pattern.nix, as the tools package has it
         bin_ = self.root / ".bin"
         bin_.mkdir()

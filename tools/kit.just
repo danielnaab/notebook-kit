@@ -3,15 +3,16 @@
 #
 #   set allow-duplicate-variables   # lets the workspace override kit_run and patterns_run below
 #   set allow-duplicate-recipes     # lets the workspace define check-local (and override any recipe)
-#   import? ".scions/notebook-kit/tools/kit.just"
+#   import? ".patterns/notebook-kit/tools/kit.just"
 #
-# `import?` (optional): a fresh clone whose scions are not filled yet (git submodule update --init) still lists the
+# `import?` (optional): a fresh clone whose patterns are not filled yet (git submodule update --init) still lists the
 # workspace's own recipes, unless one of them lists a recipe from here as a dependency (then `just` rejects the
-# file): call these from a recipe's body instead. A flake in a subdirectory imports from its scions directory, e.g.
-# "nix/agent-tools/.scions/notebook-kit/tools/kit.just".
+# file): call these from a recipe's body instead. A flake in a subdirectory imports from its patterns folder, e.g.
+# "nix/workspace/.patterns/notebook-kit/tools/kit.just"; a workspace that kept graft's folder, from ".scions/...".
+# Nothing here names the folder.
 # `just` lists every recipe by group. Recipes run from the workspace root, so paths are repository-relative,
 # and flags pass straight through: `just index --check`, `just move OLD NEW --dry-run`.
-# Docs: .scions/notebook-kit/docs/adoption.md#run-operations-with-just
+# Docs: .patterns/notebook-kit/docs/adoption.md#run-operations-with-just
 
 # How a kit tool runs: `{}` becomes the tool's name (check-kb, nb-index, ...), and the recipe's arguments follow.
 # Override with the KIT_RUN environment variable or `kit_run := "..."` in the workspace justfile, e.g.
@@ -83,19 +84,19 @@ move old new *flags:
 names *args:
     {{replace(kit_run, "{}", "nb-names")}} "$@"
 
-# Show the pinned and newest tag of each scion
+# Show the pinned and newest tag of each pattern
 [group('deps')]
 [positional-arguments]
 outdated *args:
     {{patterns_run}} outdated "$@"
 
-# Show scion changelogs between the pinned and newest tags (all scions, or the ones named)
+# Show pattern changelogs between the pinned and newest tags (all patterns, or the ones named)
 [group('deps')]
 [positional-arguments]
 changelog *names:
     {{patterns_run}} changelog "$@"
 
-# Move scions to newer release tags (e.g. notebook-kit@vX.Y.Z), apply the kit's Obsidian settings and plugins
+# Move patterns to newer release tags (e.g. notebook-kit@vX.Y.Z), apply the kit's Obsidian settings and plugins
 # (upgrade-obsidian), then list the next steps
 [group('deps')]
 [positional-arguments]
@@ -107,10 +108,10 @@ upgrade *targets:
         || echo "upgrade-obsidian did not run: quit Obsidian, then run just upgrade-obsidian before committing"
     @echo
     @echo "Next steps:"
-    @echo "  1. Read each upgraded scion's CHANGELOG.md, its Upgrading sections in particular: just changelog"
-    @echo "  2. Brief an agent or yourself on what moved:                                       just migrate"
-    @echo "  3. Apply the Upgrading steps, then verify:                                          just check"
-    @echo "  4. Commit the moved scions, flake.nix and flake.lock (tuteur's pin), and the workspace changes together."
+    @echo "  1. Read each upgraded pattern's CHANGELOG.md, its Upgrading sections in particular: just changelog"
+    @echo "  2. Brief an agent or yourself on what moved:                                        just migrate"
+    @echo "  3. Apply the Upgrading steps, then verify:                                           just check"
+    @echo "  4. Commit the moved patterns, flake.nix and flake.lock (tuteur's pin), and the workspace changes together."
 
 # Print a migration brief for an upgrade: what moved, the changelog text, the provider's changes
 [group('deps')]

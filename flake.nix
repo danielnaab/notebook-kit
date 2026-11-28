@@ -1,7 +1,7 @@
 {
   description = "Conventions, tools, and a starter seed for Markdown work-memory workspaces";
 
-  # .scions/knowledge-base-kit is a git submodule (tuteur, the input still named graft)
+  # .patterns/knowledge-base-kit is a git submodule (tuteur, the input still named graft)
   inputs.self.submodules = true;
   inputs = {
     graft.url = "github:danielnaab/tuteur/v0.3.0";
@@ -11,7 +11,6 @@
   outputs = { self, graft, ... }@inputs:
     graft.lib.mkFlake {
       inherit inputs;
-      dir = ".scions";
       # The kit's tools, apps and packages come from pattern.nix, exactly as a workspace that pins the kit gets
       # them, so they are defined once. The kit has no notebook-kit.yaml (no task records), so no task check.
       perSystem = { pkgs, lib, system, patterns, ... }:

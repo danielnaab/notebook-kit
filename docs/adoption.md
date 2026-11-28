@@ -5,7 +5,7 @@ status: working
 # Adopt and upgrade the kit
 
 A workspace uses this repository in three ways: reference content and tools it reads in place from the
-scion (a git submodule that [tuteur](https://github.com/danielnaab/tuteur) pins), `seed/` files it copies once and then owns, and a local overlay of its own rules.
+pattern (a git submodule that [tuteur](https://github.com/danielnaab/tuteur) pins in `.patterns/`), `seed/` files it copies once and then owns, and a local overlay of its own rules.
 
 ## Start a workspace
 
@@ -32,15 +32,16 @@ on graft, or on tuteur v0.2.0 or earlier, takes tuteur v0.2.1 first: this releas
    ([workspace settings](#workspace-settings)).
 4. Write the boundaries. `docs/boundaries.md` is a skeleton: which data, accounts, tools, and services this
    workspace may use. The kit supplies no boundaries, because they depend on the workspace's context.
-5. Add the kit and the checker it runs. Each becomes a git submodule in `.scions/` at a release tag:
+5. Add the kit and the checker it runs. Each becomes a git submodule in `.patterns/` (tuteur's default folder) at a
+   release tag, and tuteur writes `.patterns/README.md`, the index of what each pattern ships, which `AGENTS.md` links:
 
    ```sh
    git init -b main && git add -A
-   nix run github:danielnaab/tuteur/v0.3.0 -- add --dir .scions https://github.com/danielnaab/knowledge-base-kit@v3.0.0
-   nix run github:danielnaab/tuteur/v0.3.0 -- add --dir .scions https://github.com/danielnaab/notebook-kit@v3.0.1
-   git commit -m "Seed the workspace"   # Nix reads the scions at the commits the repository records
+   nix run github:danielnaab/tuteur/v0.3.0 -- add https://github.com/danielnaab/knowledge-base-kit@v3.0.1
+   nix run github:danielnaab/tuteur/v0.3.0 -- add https://github.com/danielnaab/notebook-kit@v3.1.0
+   git commit -m "Seed the workspace"   # Nix reads the patterns at the commits the repository records
    nix flake lock
-   cp .scions/notebook-kit/templates/*.md notebook/templates/
+   cp .patterns/notebook-kit/templates/*.md notebook/templates/
    git config core.hooksPath .githooks   # the seeded wrapper runs the kit's hook
    ```
 
@@ -49,21 +50,25 @@ on graft, or on tuteur v0.2.0 or earlier, takes tuteur v0.2.1 first: this releas
 7. Check: `just check` (tuteur check, check-kb, check-tasks, `index --check`, check-obsidian),
    `just check-obsidian --strict`, and `nix flake check`. `just` alone lists every operation.
 
-A fresh clone's `.scions/` folders are empty until `git submodule update --init` (or `just sync`): Nix fetches the
-scions itself, but `just` reads the kit's menu, and the hook the kit's script, from the folders. The seeded
+A fresh clone's `.patterns/` folders are empty until `git submodule update --init` (or `just sync`): Nix fetches the
+patterns itself, but `just` reads the kit's menu, and the hook the kit's script, from the folders. The seeded
 `justfile` imports the menu with `import?`, so it still lists the workspace's own recipes before then, as long as
 no workspace recipe lists a kit recipe as a dependency (`just` then rejects the whole file): call kit recipes from
 a recipe's body, `@{{just_executable()}} --justfile {{quote(justfile())}} RECIPE`.
+
+A workspace seeded before v3.1.0 keeps its patterns in graft's `.scions/` (`dir = ".scions";` in `flake.nix`). It
+works unchanged: the kit's tools find the folder by the marker tuteur (or graft) writes in its `README.md`, not by
+its name. To move it to `.patterns/`, follow the v3.1.0 **Upgrading** steps in the [changelog](../CHANGELOG.md).
 
 ## What the workspace references in place
 
 | Need | How |
 | --- | --- |
-| Conventions | Links into `.scions/notebook-kit/docs/`; the local `docs/conventions.md` states only local rules. |
-| Agent skills | `.pi/settings.json` lists `../.scions/notebook-kit/skills` under `skills`. |
+| Conventions | `AGENTS.md` links `.patterns/README.md` (what each pattern ships) and into `.patterns/notebook-kit/docs/`; the local `docs/conventions.md` states only local rules. |
+| Agent skills | `.pi/settings.json` lists `../.patterns/notebook-kit/skills` under `skills`. |
 | Tools and flake wiring | The kit's [`pattern.nix`](../pattern.nix): tuteur's `mkFlake` puts the tools in `packages.<system>.tools` (and the dev shell) and an app per tool: `check-kb`, `check-tasks`, `check-templates`, `check-obsidian`, `upgrade-obsidian`, `nb-index`, `nb-move`, `nb-names`, and `nb-convert` (the v0.2 upgrade), plus `just` and `markdownlint-cli2`; `packages.<system>.obsidian-plugins`; and the task check `checks.<system>.notebook-kit-tasks` when the flake's source has a `notebook-kit.yaml`. `flake.nix` names no kit. |
 | Settings | `notebook-kit.yaml` at the top, read when a tool runs ([workspace settings](#workspace-settings)). |
-| Operations menu | The seeded `justfile` imports `tools/kit.just` from the scion ([run operations with just](#run-operations-with-just)). |
+| Operations menu | The seeded `justfile` imports `tools/kit.just` from the pattern ([run operations with just](#run-operations-with-just)). |
 | Hook | The seeded `.githooks/pre-commit` wrapper runs the kit's hook; `core.hooksPath` is `.githooks`. |
 
 ## Workspace settings
@@ -89,7 +94,7 @@ type is an error that names the file.
 
 ## Run operations with just
 
-The seeded `justfile` imports [`tools/kit.just`](../tools/kit.just) from the scion, so the menu arrives with each
+The seeded `justfile` imports [`tools/kit.just`](../tools/kit.just) from the pattern, so the menu arrives with each
 upgrade. `just` lists it by group:
 
 | Group | Recipes |
@@ -151,7 +156,6 @@ them on `PATH` (then `kit_run := "{}"`). Tools the workspace's own agents need j
 ```nix
   outputs = inputs: inputs.graft.lib.mkFlake {
     inherit inputs;
-    dir = ".scions";
     perSystem = { pkgs, ... }: { tools = { inherit (pkgs) jq; }; };
   };
 ```
@@ -165,15 +169,15 @@ nix build --out-link .local/tools path:nix/workspace#tools   # .local/tools/bin/
 Evaluating a flake at a Git repository's top copies every tracked file into the Nix store, which every user of
 the machine can read: every `nix run .#…`, `nix develop`, `nix flake check`, and direnv's `use flake`. When the
 notes must not land there, move the workspace's one flake into a subdirectory and run it as a `path:` flake,
-which copies only that directory. The scions live under it
+which copies only that directory. The patterns live under it
 ([tuteur: a flake in a subdirectory](https://github.com/danielnaab/tuteur/blob/v0.1.0/docs/guides/flake-in-a-subdirectory.md)).
 
 ```text
 nix/workspace/flake.nix    the seed's flake.nix, moved, without `inputs.self.submodules`
 nix/workspace/flake.lock
-nix/workspace/.scions/     the scions (git submodules), under the flake
+nix/workspace/.patterns/   the patterns (git submodules), under the flake
 notebook-kit.yaml          still at the top: the tools read it where they run
-justfile                   names the path: flake and the scions under it
+justfile                   names the path: flake and the patterns under it
 .envrc                     use flake path:nix/workspace
 ```
 
@@ -181,27 +185,27 @@ In `nix/workspace/flake.nix`:
 
 ```nix
   inputs.graft.url = "github:danielnaab/tuteur/v0.3.0";
-  outputs = inputs: inputs.graft.lib.mkFlake { inherit inputs; dir = ".scions"; };
+  outputs = inputs: inputs.graft.lib.mkFlake { inherit inputs; };
 ```
 
-Add the scions there: `nix run github:danielnaab/tuteur/v0.3.0 -- add --dir nix/workspace/.scions URL@TAG`.
+Add the patterns there: `nix run github:danielnaab/tuteur/v0.3.0 -- add --dir nix/workspace/.patterns URL@TAG`.
 In the `justfile`:
 
 ```just
-import? "nix/workspace/.scions/notebook-kit/tools/kit.just"
+import? "nix/workspace/.patterns/notebook-kit/tools/kit.just"
 kit_run := "nix run path:nix/workspace#{} --"
 patterns_run := "nix run path:nix/workspace#tuteur --"
 ```
 
 and point `.githooks/pre-commit`, `.pi/settings.json`, `knowledge-base.yaml`'s imports, and links at
-`nix/workspace/.scions/`.
+`nix/workspace/.patterns/`.
 
 What changes:
 
 - Lock once from the top with an absolute path, `nix flake lock "path:$PWD/nix/workspace"`: Nix does not write
   the lock of a relative `path:` flake. `just upgrade` re-locks by itself.
 - A `path:` flake reads the working tree, so a fresh clone needs `git submodule update --init` (or `just sync`)
-  before any build: an empty scion leaves its tools out, with a warning.
+  before any build: an empty pattern leaves its tools out, with a warning.
 - `just check` is the check. The flake's source holds no notes and no `notebook-kit.yaml`, so it has no task
   check; `just check` runs `tuteur check` and the kit's tools on the working tree.
   `nix flake check path:nix/workspace` still evaluates the flake.
@@ -210,7 +214,7 @@ What changes:
   without lazy trees, every command does.
 - The pre-commit hook needs `markdownlint-cli2` and `just` on `PATH` (direnv, or the `tools` package): without
   a `flake.nix` at the top it has no Nix fallback.
-- An upgrade commits the moved scions and `nix/workspace/flake.lock` together.
+- An upgrade commits the moved patterns and `nix/workspace/flake.lock` together.
 
 To check the layout, use a throwaway workspace with synthetic content (for example one built from `seed/`) and the
 same `nix/workspace/` and `justfile`, never a copy of real notes: the control below copies the whole repository
@@ -244,10 +248,10 @@ seeded for the same reason; `just check-obsidian` lists which still match the ki
 ## Upgrade
 
 1. `just outdated` shows the pinned and newest tags.
-2. `just upgrade notebook-kit@vX.Y.Z` moves the scion to the new release tag (and stages it), then prints the
+2. `just upgrade notebook-kit@vX.Y.Z` moves the pattern to the new release tag (and stages it), then prints the
    next steps. tuteur takes a new major only when you name it.
 3. Read the kit's changelog between the tags (`just changelog notebook-kit`, or `CHANGELOG.md` in the
-   scion). **Upgrading** says what to change in the workspace's own files, including seeded files that changed.
+   pattern). **Upgrading** says what to change in the workspace's own files, including seeded files that changed.
 4. On the upgrade branch, `just migrate` prints a brief for an agent or a person: what moved, the rules, the
    provider's changelog text, its changes, and the workspace lines that name moved paths.
 5. Step 2 also ran `just upgrade-obsidian` ([Obsidian](obsidian.md#keeping-settings-in-sync)): it merges the
@@ -256,9 +260,9 @@ seeded for the same reason; `just check-obsidian` lists which still match the ki
    release `HEAD` records, so run it before the commit, or pass `--base`).
 6. Apply the steps, run `just check` and `nix flake check` (`nix flake check path:nix/workspace` for a
    [flake in a subdirectory](#a-workspace-whose-content-must-not-enter-the-nix-store)), then commit the moved
-   scions, `flake.lock`, and the workspace changes together.
+   patterns, `flake.lock`, and the workspace changes together.
 
-Don't commit edits inside `.scions/`: `just check` fails while a scion has uncommitted edits or sits off a
+Don't commit edits inside `.patterns/`: `just check` fails while a pattern has uncommitted edits or sits off a
 release tag. A fix to the kit goes to the kit's repository, then a release, then step 2.
 
 ## Contribute back

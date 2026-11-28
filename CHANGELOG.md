@@ -1,5 +1,39 @@
 # Changelog
 
+## v3.1.0 - 2026-11-27
+
+### Changed
+
+- **The seed keeps its patterns in `.patterns/`**, tuteur's default folder (was graft's `.scions/`): `flake.nix` drops
+  `dir = ".scions";`, and the justfile import, `.githooks/pre-commit`, `.pi/settings.json`, `knowledge-base.yaml`
+  (imports, `askFirst`), `.markdownlint-cli2.jsonc`, `.gitattributes`, `notebook-kit.yaml`, `AGENTS.md`, `README.md`
+  and `docs/conventions.md` name it. The adoption guide adds the kit and knowledge-base-kit with `tuteur add`, no `--dir`.
+- **The seed's `AGENTS.md` links `.patterns/README.md`**, the index tuteur writes of what each pinned pattern ships
+  and which of its docs to read: "Conventions are the pinned patterns (…): notebook-kit, which extends
+  knowledge-base-kit, extended in turn by local conventions, which take precedence."
+- The kit's own knowledge-base-kit pin moves to `.patterns/` too (its flake drops `dir`), at v3.0.1; the adoption
+  guide adds knowledge-base-kit v3.0.1.
+- The kit's tools still find the patterns folder by the marker in its `README.md`, whatever its name (`.patterns/`,
+  `.scions/`, or either under a flake in a subdirectory); tests now cover each.
+
+### Upgrading
+
+Optional: a workspace on `.scions/` keeps working unchanged, since nothing in the kit names the folder. To move to
+`.patterns/`:
+
+1. `git mv .scions .patterns` (or `git mv nix/workspace/.scions nix/workspace/.patterns` for a flake in a
+   subdirectory).
+2. In `flake.nix` (or `nix/workspace/flake.nix`), delete `dir = ".scions";`: `.patterns` is tuteur's default.
+3. Replace `.scions` with `.patterns` in the files the seed names it in: `justfile` (the `import?`),
+   `.githooks/pre-commit`, `.pi/settings.json`, `knowledge-base.yaml` (imports and `askFirst`),
+   `.markdownlint-cli2.jsonc`, `.gitattributes`, `notebook-kit.yaml`, `AGENTS.md`, `README.md`,
+   `docs/conventions.md`, and any other workspace file:
+   `grep -rn '\.scions' --exclude-dir=.git --exclude-dir=.patterns --exclude-dir=notebook .`.
+   Optionally link `.patterns/README.md` from `AGENTS.md`, as the seed now does.
+4. `just sync` (tuteur rewrites the patterns README and its workflows), then `just check`.
+5. Done when the grep above lists nothing (or only records you leave as written) and `just check` passes. Commit the
+   move, `.gitmodules`, `flake.nix` and the edits together.
+
 ## v3.0.1 - 2026-11-27
 
 ### Changed

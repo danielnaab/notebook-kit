@@ -64,7 +64,8 @@ let
     runtimeInputs = [ pkgs.git pkgs.gnused pkgs.markdownlint-cli2 scripts.check-kb ];
     text = ''
       cd "$(git rev-parse --show-toplevel)"
-      # staged Markdown, leaving out the scions directory (the folder whose README.md carries graft's or tuteur's marker)
+      # staged Markdown, leaving out the patterns folder (the folder whose README.md carries graft's or tuteur's
+      # marker, whatever its name: .patterns/, or .scions/ in an older workspace)
       IFS='
       '
       # shellcheck disable=SC2046

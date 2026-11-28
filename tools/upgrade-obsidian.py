@@ -3,7 +3,7 @@
 
 The seed's `notebook/.obsidian/` files are copied once; this applies later kit changes to them. For each seeded
 settings file it merges three versions: the seed at a base git ref (the kit release the workspace recorded then,
-read from the kit's git submodule), the seed in the current scion, and the vault's copy. A kit change applies where
+read from the kit's git submodule), the seed in the kit's current release, and the vault's copy. A kit change applies where
 the vault still has the old value; where the workspace changed the same setting, its value is kept and reported. Files the vault lacks are
 created. It also adds the seed's `.gitignore` exceptions for plugin settings, and installs the pinned community
 plugins (docs/obsidian-plugins.json) that the vault enables: each one missing or not matching its pin gets the
@@ -18,7 +18,7 @@ its snippet; changing or removing a label or the variants regenerates it.
 
 Run it from the workspace root on the upgrade branch, after `just upgrade`, with Obsidian closed:
 Obsidian rewrites its settings files while it runs. It refuses to write while Obsidian runs, and reports and exits 0
-when there is nothing to write. `--base` defaults to HEAD, which still holds the old scion
+when there is nothing to write. `--base` defaults to HEAD, which still holds the old release
 until the upgrade is committed; after that, name the commit before it. Without a base seed, the kit's entries are
 added and existing values kept. Running it again changes nothing.
 
@@ -230,7 +230,7 @@ def upgrade(root: Path, base: str | None, dry_run: bool, plugins: bool = True,
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("--root", type=Path, default=Path.cwd())
-    parser.add_argument("--base", default="HEAD", help="git ref whose scion holds the old seed (default: HEAD)")
+    parser.add_argument("--base", default="HEAD", help="git ref whose kit pattern holds the old seed (default: HEAD)")
     parser.add_argument("--dry-run", action="store_true", help="report what would change; write nothing")
     parser.add_argument("--allow-running", action="store_true", help="write even if Obsidian is running")
     parser.add_argument("--no-plugins", action="store_true", help="merge settings only; install no plugins")

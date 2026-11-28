@@ -6,6 +6,6 @@
     "MD022": { "lines_above": 1, "lines_below": 1 }
   },
   "globs": ["**/*.md"],
-  "ignores": [".scions/**", ".direnv/**", ".local/**", ".workmux/**", "node_modules/**"],
+  "ignores": [".patterns/**", ".direnv/**", ".local/**", ".workmux/**", "node_modules/**"],
   "gitignore": true
 }

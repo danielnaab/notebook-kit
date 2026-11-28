@@ -5,7 +5,7 @@ status: working
 # Obsidian and Markdown formatting
 
 `notebook/` is the Obsidian vault (Open folder as vault), so the vault is the OKF bundle and nothing else: code,
-workspace docs, and `.scions/` stay outside it. Obsidian is a view over the same Markdown agents maintain.
+workspace docs, and `.patterns/` stay outside it. Obsidian is a view over the same Markdown agents maintain.
 The [seed](../seed/common/notebook/.obsidian/) carries shared core settings, appearance, shortcuts, a layout preset, and
 reviewed plugin settings; machine-specific UI state stays local.
 
@@ -95,8 +95,8 @@ exits 1 on changed or missing files.
 
 `just upgrade-obsidian` applies a kit release's setting and plugin changes, and `just upgrade` runs it after
 moving the pins. Run it on the upgrade branch, with Obsidian closed, because Obsidian rewrites its settings while it runs. For each
-seeded file it merges three versions: the seed in the scion at `--base` (default `HEAD`, which still holds the
-old scion until the upgrade is committed), the current seed, and the vault's copy.
+seeded file it merges three versions: the seed in the kit's pattern at `--base` (default `HEAD`, which still holds the
+old release until the upgrade is committed), the current seed, and the vault's copy.
 
 - A kit change applies where the vault still has the old value. Where the workspace changed the same setting, its
   value is kept and listed as `kept`.
@@ -117,7 +117,7 @@ undeclared is listed as changed, as a reminder.
 
 A workspace states where its settings deliberately differ from the seed under `obsidian` in its
 `notebook-kit.yaml` at the workspace's top ([workspace settings](adoption.md#workspace-settings)). The base stays in
-the scion; the deviations are a few lines the workspace owns, so two workspaces on the same kit share everything
+the kit's pattern; the deviations are a few lines the workspace owns, so two workspaces on the same kit share everything
 else.
 
 ```yaml
@@ -183,9 +183,9 @@ markdownlint-cli2 --fix FILE...  # fix in place; output matches the Obsidian Lin
 ## Pre-commit hook
 
 [`tools/hooks/pre-commit`](../tools/hooks/pre-commit) runs the lint check on staged `.md` files and
-`just check-kb` over the repository, and blocks the commit on violations. Git cannot run it from
-`.scions/`, because graft does not keep the executable bit there. The seed therefore has an executable wrapper,
-`.githooks/pre-commit`, that runs it with `sh`. Enable the wrapper once per clone:
+`just check-kb` over the repository, and blocks the commit on violations. The seed has an executable wrapper,
+`.githooks/pre-commit`, that runs it with `sh` from `.patterns/notebook-kit/`, and says what to do when a fresh
+clone's folder there is still empty (graft's copies, before submodules, did not keep the executable bit). Enable the wrapper once per clone:
 
 ```sh
 git config core.hooksPath .githooks

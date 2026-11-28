@@ -6,7 +6,7 @@ import unittest
 from pathlib import Path
 
 KIT = Path(__file__).resolve().parents[1]
-SKIP_PARTS = {".git", ".scions", ".direnv"}
+SKIP_PARTS = {".git", ".patterns", ".direnv"}
 SELF = {"tests/test_hygiene.py"}
 DENY = [
     r"\bGSA\b", r"\bTTS\b", r"\bGFE\b", r"\bFlexion\b", r"cloud\.gov", r"\bUSAi\b", r"tts-assistant",

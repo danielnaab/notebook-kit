@@ -8,8 +8,10 @@ read when a tool runs. Every key is optional, and an absent file means the defau
       settings: {...}
       identity: {...}
 
-graft (v2.13.0 and later) grafts the kit as a git submodule in the scions directory, the folder whose README.md
-carries graft's marker: `.scions/` at the top, or under a flake in a subdirectory (`nix/agent-tools/.scions/`).
+tuteur (and graft v2.13.0 and later before it) pins the kit as a git submodule in the patterns folder, the folder whose
+README.md carries tuteur's or graft's marker, whatever its name: `.patterns/` (tuteur's default, the seed's from kit
+v3.1.0) or `.scions/` (graft's, kept by older workspaces) at the top, or under a flake in a subdirectory
+(`nix/workspace/.patterns/`).
 """
 
 from __future__ import annotations
@@ -52,9 +54,10 @@ def load(root: Path) -> dict:
 
 
 def scions_dirs(root: Path) -> list[str]:
-    """Repository-relative scions directories: folders whose README.md (as staged) carries graft's marker.
+    """Repository-relative patterns folders: folders whose README.md (as staged) carries graft's or tuteur's marker.
 
-    git grep does not descend into submodules, so a scion's own scions directory is never one of them.
+    Found by the marker, not by name, so `.patterns/`, `.scions/` and either under a subdirectory flake all count.
+    git grep does not descend into submodules, so a pattern's own patterns folder is never one of them.
     """
     proc = subprocess.run(["git", "-C", str(root), "grep", "--cached", "-l", "-F",
                            *(arg for marker in GRAFT_MARKERS for arg in ("-e", marker)), "--",

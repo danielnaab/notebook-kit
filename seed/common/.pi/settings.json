@@ -1,4 +1,4 @@
 {
   "$schema": "https://pi.dev/schemas/settings.schema.json",
-  "skills": ["../.scions/notebook-kit/skills"]
+  "skills": ["../.patterns/notebook-kit/skills"]
 }

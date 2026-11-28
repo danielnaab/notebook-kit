@@ -32,8 +32,8 @@ IDENTITY_HEADERS = (IDENTITY_HEADER,
 INSTALLER_SUFFIX = b"\n/* nosourcemap */"
 # Where the seeded settings sit inside the kit: v0.2 and later, then v0.1.
 SEED_PATHS = ("seed/common/notebook/.obsidian", "seed/common/.obsidian")
-# Where copy-mode graft (v2.12 and earlier) committed them in the workspace: kit v1.x, then the same layouts under
-# the kit's earlier name (v0.2 to v0.7, then v0.1). An upgrade from notebook-conventions reads its old seed by git ref.
+# Where copy-mode graft (v2.12 and earlier, always in `.scions/`) committed them in the workspace: kit v1.x, then the
+# same layouts under the kit's earlier name (v0.2 to v0.7, then v0.1). An upgrade from notebook-conventions reads its old seed by git ref.
 SCION_SEED_PATHS = (".scions/notebook-kit/seed/common/notebook/.obsidian",
                     ".scions/notebook-kit/seed/common/.obsidian",
                     ".scions/notebook-conventions/seed/common/notebook/.obsidian",

@@ -8,7 +8,7 @@ entrypoints:
 
 imports:
   - kind: local
-    path: .scions/knowledge-base-kit
+    path: .patterns/knowledge-base-kit
     relationship: foundational
     sync_policy: extend
 
@@ -43,4 +43,4 @@ rules:
   writes:
     allow: [docs/**, templates/**, skills/**, tools/**, nix/**, seed/**, tests/**, README.md, CHANGELOG.md, LICENSE]
     deny: [secrets/**, credentials/**, .env, .env.*, "**/*.key", "**/*.pem", .git/**, .direnv/**]
-    askFirst: [.scions/**, AGENTS.md, knowledge-base.yaml, flake.nix, flake.lock, .gitattributes, .gitignore]
+    askFirst: [.patterns/**, AGENTS.md, knowledge-base.yaml, flake.nix, flake.lock, .gitattributes, .gitignore]

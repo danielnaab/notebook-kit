@@ -72,7 +72,10 @@ class SettingsFileTest(unittest.TestCase):
 
 
 class KitScionTest(unittest.TestCase):
-    """The kit is a git submodule in the scions directory graft's marker README names, wherever that is."""
+    """The kit is a git submodule in the patterns folder whose README carries graft's or tuteur's marker, wherever
+    that is and whatever its name: graft's .scions/ (kit v3.0 and earlier), here under a subdirectory flake."""
+
+    scions = "nix/agent-tools/.scions"
 
     def setUp(self):
         tmp = tempfile.TemporaryDirectory()
@@ -90,11 +93,9 @@ class KitScionTest(unittest.TestCase):
         (seed / "app.json").write_text(json.dumps({"v": 2}))
         git(self.kit, "commit", "-qam", "v2")
         self.v2 = git(self.kit, "rev-parse", "HEAD").strip()
-        # a workspace whose flake (and so its scions) sits in a subdirectory
         self.root = base / "ws"
         self.root.mkdir()
         git(self.root, "init", "-q", "-b", "main")
-        self.scions = "nix/agent-tools/.scions"
         (self.root / self.scions).mkdir(parents=True)
         (self.root / self.scions / "README.md").write_text(MARKER + "\n# Scions\n")
         git(self.root, "submodule", "add", "-q", self.kit.as_uri(), f"{self.scions}/notebook-kit")
@@ -118,6 +119,18 @@ class KitScionTest(unittest.TestCase):
         git(self.root, "add", f"{self.scions}/notebook-kit")
         self.assertEqual({"v": 1}, obs.base_seed(self.root, "HEAD", "app.json"))
         self.assertIs(obs.MISSING, obs.base_seed(self.root, "HEAD", "absent.json"))
+
+
+class KitPatternTest(KitScionTest):
+    """tuteur's default folder, .patterns/ at the top (kit v3.1.0's seed)."""
+
+    scions = ".patterns"
+
+
+class KitPatternSubdirectoryTest(KitScionTest):
+    """.patterns/ under a flake in a subdirectory."""
+
+    scions = "nix/workspace/.patterns"
 
 
 if __name__ == "__main__":

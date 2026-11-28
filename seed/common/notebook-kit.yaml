@@ -1,5 +1,5 @@
 # Settings for notebook-kit's tools in this workspace, read when a tool runs. Every key is optional.
-# Docs: .scions/notebook-kit/docs/adoption.md#workspace-settings
+# Docs: .patterns/notebook-kit/docs/adoption.md#workspace-settings
 
 # false: this workspace keeps no task records (check-tasks and the flake's task check skip).
 tasks: true

@@ -7,7 +7,8 @@ status: working
 A workspace is a Git repository of Markdown that people browse in Obsidian and agents maintain. Work memory lives
 in `notebook/`, which is both the Obsidian vault and an [OKF v0.2](https://github.com/GoogleCloudPlatform/knowledge-catalog/blob/main/okf/SPEC.md)
 bundle. Workspace operating guidance lives in `docs/`; tooling in `scripts/` and `tests/`. Those, the root
-`README.md` and `AGENTS.md`, and `.scions/` (the scions, git submodules) stay outside the vault.
+`README.md` and `AGENTS.md`, and `.patterns/` (the pinned patterns, git submodules; `.scions/` in a workspace
+seeded before kit v3.1.0) stay outside the vault.
 
 ## Layers
 

@@ -10,7 +10,7 @@ pin it as a tuteur pattern. Read [README.md](README.md), then [KB configuration]
   known terms; passing it is necessary, not sufficient. Read your diff for context the scan cannot know.
 - **Boundaries are the workspace's.** Never add data, account, service, or tool boundaries here. The seed ships a
   skeleton (`seed/profiles/generic/docs/boundaries.md`) that each workspace fills in.
-- **Reference over copy.** Prefer content a workspace reads in place from the scion. Add to `seed/` only what a
+- **Reference over copy.** Prefer content a workspace reads in place from the pattern. Add to `seed/` only what a
   workspace must own and edit; every seeded file is a future migration.
 - **Every release is a migration.** Update [CHANGELOG.md](CHANGELOG.md) with a `## vX.Y.Z` section and an
   **Upgrading** subsection written as steps an agent who knows only the workspace can apply: what moved, what to
@@ -22,7 +22,7 @@ pin it as a tuteur pattern. Read [README.md](README.md), then [KB configuration]
 - **Docs follow knowledge-base-kit:** `status` frontmatter, `## Sources`, real relative links. Keep policy-style text short.
 - **Verify:** `nix flake check` runs the tests (tool tests, a workspace built from `seed/`, and the hygiene scan);
   `nix run .#check-kb` checks links, status, and Sources here. Tests need no network.
-- `.scions/` holds git submodules at release tags (knowledge-base-kit). Ask before editing a scion: a fix belongs
-  in the provider (a branch in the scion, released); don't commit a scion off a release tag. Upgrade with
+- `.patterns/` holds git submodules at release tags (knowledge-base-kit). Ask before editing a pattern: a fix belongs
+  in the provider (a branch in the pattern, released); don't commit a pattern off a release tag. Upgrade with
   `nix run .#tuteur upgrade`. The kit's own tools come from [pattern.nix](pattern.nix), as every workspace gets them.
 - Do not push, tag, or publish without the owner's authorization.
